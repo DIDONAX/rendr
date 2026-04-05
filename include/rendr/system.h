@@ -1,79 +1,90 @@
 #pragma once
 
-#include <iterator>
 #include <vector>
 
-#include "rendr/glw.hpp"
-#include "rendr/shader_sources.h"
-#include "rendr/types.h"
-#include "rendr/constants.h"
+#include "glm/ext/vector_float4.hpp"
+#include "glm/ext/vector_float3.hpp"
+
+#include "rendr/glw.h"
+#include "rendr/shader_source.h"
 #include "rendr/window.h"
 
 
 namespace rendr {
 
+using namespace glw;
+using namespace glfw;
+
 using mesh_id = size_t;
 using instance_id = size_t;
 
-struct geometry {
-    std::vector<position_t> positions_;
-    std::vector<index_t> indices_;
-};
+using position_t = glm::vec3;
+using offset_t = glm::vec4;
+using index_t = uint;
 
-struct mesh {
+constexpr auto sf = Flags::Dynamic | Flags::Write | Flags::Persistent | Flags::Coherent;
+constexpr auto mf = Flags::Write | Flags::Persistent | Flags::Coherent;
+
+struct draw_command {
     uint count_;
-    uint instance_count;
+    uint32_t instance_count;
     uint first_index_;
-    int base_vertex_;
+    int  base_vertex_;
     uint base_instance_;
 };
 
-struct shader_data {
-    gl::shader* vert_shader_;
-    gl::shader* frag_shader_;
-    gl::program* program_;
-
-    ~shader_data();
+struct mesh_storage_info {
+    size_t size_{1};
+    size_t capacity_{1};
+    size_t vert_capacity_{3};
+    size_t ind_capacity_{3};
 };
 
-struct buffer_data {
-    gl::vertex_array* vertex_array_;
-    gl::buffer_object* element_buffer_;
-    gl::buffer_object* indirect_buffer_;
-
-    gl::storage_buffer* positions_;
-    gl::storage_buffer* transforms_;
-    gl::storage_buffer* colors_;
-
-    ~buffer_data();
+struct geometry {
+    std::vector<position_t> vertices_;
+    std::vector<index_t> indices_;
 };
 
-struct instance_data {
-    std::vector<transform_t> transforms_data_;
-    std::vector<color_t> colors_data_;
+struct mesh_storage {
+    mesh_storage_info info_;
+    geometry geom_;
+    vertex_array attributes_;
+    vertex_buffer vertices_;
+    vertex_buffer indices_;
+    mesh_id add(const geometry&);
+};
+
+struct model_storage {
+    // per mesh
+    size_t capacity_{10000000};
+    vertex_buffer offset_buff_;
+    std::vector<offset_t> offsets_;
 };
 
 struct system {
-    glfw::window* window_;
-    shader_data* shaders_;
-    buffer_data* buffers_;
+    window* window_;
+    shader_programm* program_;
 
-    instance_data instances_;
-    std::vector<mesh> meshes_;
-    geometry geom_;
+    mesh_storage* meshes_;
+    model_storage* models_;
+    std::vector<draw_command> commands_;
+    vertex_buffer* indirect_buffer_;
 
     system();
     ~system();
+ 
+    instance_id add_instance(const mesh_id, const offset_t off); 
+    void remove_instance(const instance_id); 
+    void upload_batch();
+    void draw() const;
+    void update_cam();
+    void update_instance(const instance_id, const offset_t off);
 
-    mesh_id add_mesh(const geometry&);
-    void remove_mesh(const mesh_id);
-
-    instance_id add_instance(const mesh_id); 
-    void remove_instance(const mesh_id); 
-
-    void update_transform(instance_id iid, transform_t t);
-    void update_color(instance_id iid, color_t c);
-    void draw();
+    private:
+        void set_initial_state();
+        void allocate_resources();
+        void specify_attributes();
+        void upload_geom();
 };
 
 } // namespace rendr
