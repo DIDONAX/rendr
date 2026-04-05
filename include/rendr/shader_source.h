@@ -20,8 +20,7 @@ void main() {
     vec3 offset = offsets[model_id].xyz;
 
     vmesh_id = gl_DrawID; 
-    // gl_Position = proj * view * vec4(geom_pos + offset.xyz, 1.0);
-    gl_Position = vec4(geom_pos + offset.xyz, 1.0);
+    gl_Position = proj * view * vec4(geom_pos + offset.xyz, 1.0);
 }
 )glsl";
  

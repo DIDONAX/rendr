@@ -1,35 +1,33 @@
 #include "rendr/system.h"
-#include "GLFW/glfw3.h"
 #include "glm/gtc/type_ptr.hpp"
-#include "rendr/glw.h"
-#include "rendr/window.h"
-#include <cassert>
+
 #include <cstring>
 
 namespace rendr {
 
+constexpr auto mf = Flags::Write | Flags::Read | Flags::Persistent | Flags::Coherent;
+constexpr auto sf = Flags::Dynamic | mf;
+
 system::system() {
     glfwInit();
 
-    window_ = new window();
+    window_ = new window{};
     program_ = new shader_programm(VS_SRC, FS_SRC);
-    meshes_ = new mesh_storage();
-    models_ = new model_storage();
-    indirect_buffer_ = new vertex_buffer();
+    meshes_ = new mesh_storage{};
+    models_ = new model_storage{};
+    mdi_buff_ = new vertex_buffer{};
 
     allocate_resources();
     specify_attributes();
 
-    meshes_->geom_ = {
-        .vertices_ = {{-0.005, 0, 0}, {0.005, 0, 0}, {0, 0.005, 0}},
+    add_mesh({
+        .vertices_ = {{-0.01, 0, 0}, {0.05, 0, 0}, {0, 0.05, 0}},
         .indices_ = {0, 1, 2}
-    };
-    commands_.push_back({
-        .count_ = 3,
-        .instance_count = 0,
-        .first_index_ = 0,
-        .base_vertex_ = 0,
-        .base_instance_ = 0
+    });
+
+    add_mesh({
+        .vertices_ = {{-0.01, -0.01, 0}, {-0.01, 0.01, 0}, {0.01, 0.01, 0}, {0.01, -0.01, 0}},
+        .indices_ = {0, 1, 2, 0, 2, 3}
     });
 
     upload_geom();
@@ -42,21 +40,35 @@ system::~system() {
     delete program_;
     delete meshes_;
     delete models_;
-    delete indirect_buffer_;
+    delete mdi_buff_;
     glfwTerminate();
 };
 
+// TODO: change when preallocation logic is changes
+mesh_id system::add_mesh(const geometry& geom) {
+    auto cap = meshes_->info_.capacity_;
+    auto& size = meshes_->info_.size_;
+    if (cap <= size) return -1;
+    commands_.push_back({
+        .count_ = static_cast<uint>(geom.indices_.size()),
+        .instance_count = 0,
+        .first_index_ = static_cast<uint>(meshes_->geom_.indices_.size()), 
+        .base_vertex_ = static_cast<int>(meshes_->geom_.vertices_.size()),
+        // assumes same slot size per mesh type
+        .base_instance_ = static_cast<uint>(size*models_->capacity_), 
+    });
+    meshes_->add(geom);
+    return size-1;
+}
+
 void system::update_cam() {
-    // cam_.process_keyboard(window_->handle());
-    // cam_.process_mouse(window_->handle());
-    // auto view = cam_.view();
-    // auto proj = cam_.proj();
-    // program_->update_view(glm::value_ptr(view));
-    // program_->update_proj(glm::value_ptr(proj));
+    auto view = cam_.view();
+    auto proj = cam_.proj(window_->aspect());
+    program_->update_view(glm::value_ptr(view));
+    program_->update_proj(glm::value_ptr(proj));
 }
 
 void system::draw() const {
-    // this becomes slow when 10M > triangles
     // std::memcpy(models_->offset_buff_.data(), models_->offsets_.data(), models_->offsets_.size() * sizeof(offset_t));
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, (GLsizei)commands_.size(), 0);
 };
@@ -68,7 +80,7 @@ instance_id system::add_instance(const mesh_id id, const offset_t off = {}) {
     // assert(id < commands_.size() && "invalid mesh_id");
 
     auto ins_id = id * models_->capacity_ + commands_[id].instance_count;
-    models_->offsets_[ins_id] = off;
+    static_cast<offset_t*>(models_->offsets_.data())[ins_id] = off;
     commands_[id].instance_count++;
     return ins_id;
 }
@@ -89,23 +101,22 @@ instance_id system::add_instance(const mesh_id id, const offset_t off = {}) {
 // }
 
 void system::update_instance(const instance_id id, const offset_t off) {
-    // models_->offsets_[id] = off;
-    static_cast<offset_t*>(models_->offset_buff_.data())[id] = off;
+    static_cast<offset_t*>(models_->offsets_.data())[id] = off;
 }
 
 void system::set_initial_state() {
     program_->use(); 
     glBindVertexArray(meshes_->attributes_.id_);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, models_->offset_buff_.id_);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirect_buffer_->id_);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, models_->offsets_.id_);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_buff_->id_);
 }
 
 void system::allocate_resources() {
     auto& vert = meshes_->vertices_;
     auto& ind = meshes_->indices_;
-    auto& off = models_->offset_buff_;
+    auto& off = models_->offsets_;
 
-    indirect_buffer_->alloc(nullptr, meshes_->info_.capacity_* sizeof(draw_command), Flags::Dynamic);
+    mdi_buff_->alloc(nullptr, meshes_->info_.capacity_* sizeof(draw_command), Flags::Dynamic);
     vert.alloc(nullptr, meshes_->info_.vert_capacity_ * sizeof(position_t), sf);
     ind.alloc(nullptr, meshes_->info_.ind_capacity_ * sizeof(index_t), sf);
 
@@ -113,7 +124,6 @@ void system::allocate_resources() {
     vert.map(mf);
     ind.map(mf);
     off.map(mf);
-    models_->offsets_.resize(models_->capacity_ * meshes_->info_.capacity_);
 }
 
 void system::specify_attributes() {
@@ -137,7 +147,7 @@ void system::upload_geom() {
 
 // resize check handled by the caller
 void system::upload_batch() {
-    glNamedBufferSubData(indirect_buffer_->id_, 0, commands_.size() * sizeof(draw_command), commands_.data());
+    glNamedBufferSubData(mdi_buff_->id_, 0, commands_.size() * sizeof(draw_command), commands_.data());
 }
 
 }  // namespace rendr

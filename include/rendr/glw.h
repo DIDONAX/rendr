@@ -21,10 +21,13 @@ enum Flags : uint32_t {
 
 struct vertex_buffer {
     uint id_{0};
-
-    ~vertex_buffer() {if (id_!= 0) glDeleteBuffers(1, &id_);}
+    ~vertex_buffer() {
+        if (id_!= 0) {
+            unmap();
+            glDeleteBuffers(1, &id_);
+        }
+    }
     vertex_buffer() {glCreateBuffers(1, &id_);}
-
     void alloc(const auto data, const size_t bytes, const uint32_t sf) {
         assert(id_ != 0 && "alloc() fail: delete and reallocate instead");
         glNamedBufferStorage(id_, bytes, data, sf);
@@ -35,6 +38,7 @@ struct vertex_buffer {
         data_ = glMapNamedBufferRange(id_, 0, capacity_, mf);
         assert(data_ && "map() fail: check flags");
     }
+    void unmap() {glUnmapNamedBuffer(id_);}
     void* data() const {
         assert(data_ && "data() fail: check flags");
         return data_;
