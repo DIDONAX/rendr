@@ -7,7 +7,7 @@ using namespace glm;
 namespace rendr {
 
 struct camera_settings {
-    float speed_{5};
+    float speed_{2};
     float sens_{0.009};
     float fov_{45};
 };

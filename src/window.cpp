@@ -1,6 +1,7 @@
 #include "rendr/window.h"
 #include "GLFW/glfw3.h"
 #include "glad/gl.h"
+#include <print>
 
 namespace rendr {
 
@@ -15,7 +16,6 @@ glfw::window::window() {
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
         auto monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-
         glf_window = glfwCreateWindow(mode->width, mode->height, "My Title", monitor, NULL);
         glfwSetWindowPos(glf_window, 0, 0);
     };
@@ -24,9 +24,7 @@ glfw::window::window() {
     glfwMakeContextCurrent(glf_window);
     gladLoaderLoadGL();
     glfwSwapInterval(0);
-    glClearColor(0, 0, 0, 0);
-}
-
-
+    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+    printf("OpenGL version: %s\n", glGetString(GL_VERSION));}
 
 } // namespace rendr

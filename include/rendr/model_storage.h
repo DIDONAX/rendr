@@ -6,11 +6,13 @@
 #include "rendr/types.h"
 
 namespace rendr {
+using namespace glw;
 
 struct model_storage {
     // per mesh
-    size_t capacity_{300000};
-    glw::vertex_buffer offsets_;
+    size_t capacity_{1000};
+    shader_storage offsets_;
+    shader_storage colors_;
 };
 
 } // namespace rendr

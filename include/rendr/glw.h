@@ -19,26 +19,31 @@ enum Flags : uint32_t {
     Coherent = GL_MAP_COHERENT_BIT,
 };
 
-struct vertex_buffer {
+struct shader_storage {
     uint id_{0};
-    ~vertex_buffer() {
+    ~shader_storage() {
         if (id_!= 0) {
             unmap();
             glDeleteBuffers(1, &id_);
         }
     }
-    vertex_buffer() {glCreateBuffers(1, &id_);}
+    shader_storage() {glCreateBuffers(1, &id_);}
     void alloc(const auto data, const size_t bytes, const uint32_t sf) {
         assert(id_ != 0 && "alloc() fail: delete and reallocate instead");
         glNamedBufferStorage(id_, bytes, data, sf);
         capacity_ = bytes;
         alloc_flags_ = sf;
     }
+    void binding_loc(const uint32_t loc) const {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
+    }
     void map(const uint32_t mf) {
         data_ = glMapNamedBufferRange(id_, 0, capacity_, mf);
         assert(data_ && "map() fail: check flags");
     }
     void unmap() {glUnmapNamedBuffer(id_);}
+
+    // this shouldnt be stored in case of realloc
     void* data() const {
         assert(data_ && "data() fail: check flags");
         return data_;
@@ -54,10 +59,10 @@ struct vertex_array {
 
     ~vertex_array() {if (id_ != 0) glDeleteVertexArrays(1, &id_);}
     vertex_array() {glCreateVertexArrays(1, &id_);}
-    void bind_element_buff(const vertex_buffer& ebo) const {
+    void bind_element_buff(const shader_storage& ebo) const {
         glVertexArrayElementBuffer(id_, ebo.id_);
     }
-    void bind_vertex_buff(const vertex_buffer& vbo, const uint bind_loc, const size_t stride) const {
+    void bind_vertex_buff(const shader_storage& vbo, const uint bind_loc, const size_t stride) const {
         glVertexArrayVertexBuffer(id_, bind_loc, vbo.id_, 0, stride);
     }
     void enable_attrib(const uint loc) const {
@@ -72,10 +77,11 @@ struct vertex_array {
 
 };
 
-struct shader_programm {
-    uint id_;
-    int view_loc_;
-    int proj_loc_;
+// this is too coupled, needs rewrite
+struct shader_program {
+    uint id_{0};
+    int view_loc_{-1};
+    int proj_loc_{-1};
 
     void update_view(float* mat4f) {
         glUniformMatrix4fv(view_loc_, 1, GL_FALSE, mat4f);
@@ -85,23 +91,39 @@ struct shader_programm {
     }
     void use() {glUseProgram(id_);}
 
-    ~shader_programm(){glDeleteProgram(id_);}
-    shader_programm(const char* vs, const char* fs){
+    uint compile(auto type, const char* src) {
+        uint s = glCreateShader(type);
+        glShaderSource(s, 1, &src, nullptr);
+        glCompileShader(s);
+        int success;
+        glAttachShader(id_, s);
+        return s;
+    }
+
+    shader_program(const char* cs) {
         id_ = glCreateProgram();
-
-        auto compile = [&](auto type, auto src) -> uint {
-            uint s = glCreateShader(type);
-            glShaderSource(s, 1, &src, nullptr);
-            glCompileShader(s);
-            glAttachShader(id_, s);
-            return s;
-        };
-
+        auto c = compile(GL_COMPUTE_SHADER, cs);
+        int success;
+        glGetShaderiv(c, GL_COMPILE_STATUS, &success);
+        assert(success && "compute shader compile error");
+        glLinkProgram(id_);
+        glGetProgramiv(id_, GL_LINK_STATUS, &success);
+        assert(success && "shader link error");
+        glDeleteShader(c);
+    }
+    shader_program(const char* vs, const char* fs){
+        id_ = glCreateProgram();
+        int success;
         auto f = compile(GL_FRAGMENT_SHADER, fs);
+        glGetShaderiv(f, GL_COMPILE_STATUS, &success);
+        assert(success && "fragment shader compile error");
         auto v = compile(GL_VERTEX_SHADER, vs);
+        glGetShaderiv(v, GL_COMPILE_STATUS, &success);
+        assert(success && "vertex shader compile error");
 
         glLinkProgram(id_);
-
+        glGetProgramiv(id_, GL_LINK_STATUS, &success);
+        assert(success && "shader link error");
         glDeleteShader(f);
         glDeleteShader(v);
 

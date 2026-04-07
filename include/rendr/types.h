@@ -12,6 +12,8 @@ using instance_id = size_t;
 
 using position_t = glm::vec3;
 using offset_t = glm::vec4;
+using color_t = glm::vec4;
+using normal_t = glm::vec3;
 using index_t = uint;
 
 } // namespace rendr

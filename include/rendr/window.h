@@ -10,7 +10,7 @@ struct window {
     ~window();
     window();
 
-    inline void clear() const {glClear(GL_COLOR_BUFFER_BIT);}
+    inline void clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
     inline bool is_open() const {return !glfwWindowShouldClose(glf_window);}
     inline void display() const {glfwSwapBuffers(glf_window);}
     inline void poll_event() const {glfwPollEvents();}
