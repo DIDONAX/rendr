@@ -1,5 +1,4 @@
 #include "rendr/primitives.h"
-#include "rendr/mesh_storage.h"
 #include <cmath>
 
 // all follow ccw
@@ -8,17 +7,16 @@ namespace rendr {
 geometry load_cube() {
     geometry g;
     g.vertices_ = {
-        {-0.05,-0.05,-0.05}, {0.05,-0.05,-0.05}, {0.05,0.05,-0.05}, {-0.05,0.05,-0.05}, // back
-        {-0.05,-0.05,0.05},  {0.05,-0.05,0.05},  {0.05,0.05,0.05},  {-0.05,0.05,0.05}   // front
+        {-0.05,-0.05, 0.05}, { 0.05,-0.05, 0.05}, { 0.05, 0.05, 0.05}, {-0.05, 0.05, 0.05}, // Front (z+)
+        {-0.05,-0.05,-0.05}, { 0.05,-0.05,-0.05}, { 0.05, 0.05,-0.05}, {-0.05, 0.05,-0.05}  // Back (z-)
     };
-
     g.indices_ = {
-        0, 2, 1, 0, 3, 2,
-        4, 5, 6, 4, 6, 7,
-        0, 4, 7, 0, 7, 3,
-        1, 2, 6, 1, 6, 5,
-        3, 7, 6, 3, 6, 2,
-        0, 1, 5, 0, 5, 4
+        0,1,2,0,2,3, // f
+        1,5,6,1,6,2, // r
+        5,4,7,5,7,6, // ba
+        4,0,3,4,3,7, // l
+        3,2,6,3,6,7, // t
+        4,5,1,4,1,0  // bot
     };
     return g;
 }
@@ -30,7 +28,7 @@ geometry load_triangle() {
             {-0.5f,-0.5f,0.0f},
             {0.5f,-0.5f,0.0f}
         },
-        .indices_ = {0, 1, 2}
+        .indices_ = {0,1,2}
     };
 }
 
@@ -91,10 +89,8 @@ geometry load_cylinder(int segments, float radius, float height) {
 
         g.indices_.insert(g.indices_.end(), {t1, b1, b2});
         g.indices_.insert(g.indices_.end(), {t1, b2, t2});
-
         g.indices_.insert(g.indices_.end(), {top_center_idx, t2, t1});
-
-        g.indices_.insert(g.indices_.end(), {bottom_center_idx, b1, b2});
+        g.indices_.insert(g.indices_.end(), {bottom_center_idx, b2, b1});
     }
     return g;
 }

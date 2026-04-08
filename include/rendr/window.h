@@ -1,10 +1,12 @@
 #pragma once
 
-#include "glad/gl.h"
+#include <string_view>
+
 #include "GLFW/glfw3.h"
 #include "glm/ext/vector_float2.hpp"
+
 #include "rendr/types.h"
-#include <string_view>
+
 
 namespace rendr {
 
@@ -20,6 +22,8 @@ enum Key {
     D = GLFW_KEY_D,
     R = GLFW_KEY_R,
     C = GLFW_KEY_C,
+    Space = GLFW_KEY_SPACE,
+    LCTRL = GLFW_KEY_LEFT_CONTROL
 };
 
 enum Mouse {
@@ -27,8 +31,9 @@ enum Mouse {
     Right = GLFW_MOUSE_BUTTON_RIGHT
 };
 
+
 struct window_settings {
-    int height{900};
+    int height{1000};
     bool vsync{false};
     bool disable_cursor{false};
     color_t bg{};

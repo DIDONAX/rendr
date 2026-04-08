@@ -5,12 +5,13 @@
 
 namespace rendr {
 
+using namespace glm;
 struct camera {
-    glm::vec3 position_{0,0,-1};
-    glm::vec3 target_{};
-    glm::vec3 direction_{0,0,-1};
-    glm::vec3 up_{0,1,0};
-    glm::vec3 right_{1,0,0};
+    vec3 position_{0,0,-1};
+    vec3 target_{};
+    vec3 direction_{0,0,-1};
+    vec3 up_{0,1,0};
+    vec3 right_{1,0,0};
     float speed_{1};
     float sens_{1};
 };

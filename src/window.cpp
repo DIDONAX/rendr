@@ -1,5 +1,5 @@
+#include "glad/gl.h"
 #include "rendr/window.h"
-#include "GLFW/glfw3.h"
 
 namespace rendr {
 
@@ -56,6 +56,7 @@ glm::vec2 window::mouse_delta() {
     mouse_last_ = {(float)x, (float)y};
     return delta;
 }
+
 void window::get_mouse_pos(double& x, double& y) const {
     glfwGetCursorPos(glf_window, &x, &y);
 }
@@ -63,4 +64,5 @@ void window::get_mouse_pos(double& x, double& y) const {
 void window::disable_cursor(bool f) {
     glfwSetInputMode(glf_window, GLFW_CURSOR, f ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
+
 } // namespace rendr

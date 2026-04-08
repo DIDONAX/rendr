@@ -1,9 +1,6 @@
 #pragma once
 
-#include <vector>
-
 #include "rendr/glw.h"
-#include "rendr/types.h"
 
 namespace rendr {
 using namespace glw;

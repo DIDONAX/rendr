@@ -1,12 +1,9 @@
 #pragma once
-#include <cassert>
-#include <cstddef>
-#include <cstdint>
-#include <print>
 
 #include "glad/gl.h"
-#include "glm/ext/matrix_float4x4.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include <cassert>
+#include <cstddef>
 
 namespace rendr::glw {
 
