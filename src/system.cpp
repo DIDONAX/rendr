@@ -1,6 +1,7 @@
 #include "rendr/system.h"
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "rendr/camera.h"
 #include "rendr/glw.h"
 #include "rendr/primitives.h"
 #include "rendr/shader_source.h"
@@ -11,10 +12,6 @@ namespace rendr {
 constexpr auto map_flags = Flags::Write | Flags::Persistent | Flags::Coherent;
 
 system::system() {
-    glfwInit();
-
-    window_ = new window{};
-    glfwSetWindowUserPointer(window_->handle(), this);
     raster_program_ = new shader_program(vertex_shader, fragment_shader);
     meshes_ = new mesh_storage{};
     models_ = new model_storage{};
@@ -28,14 +25,11 @@ system::system() {
 };
 
 system::~system() {
-    delete window_;
     delete raster_program_;
     delete meshes_;
     delete models_;
     delete mdi_;
-    glfwTerminate();
 };
-
 
 void system::wireframe(const bool b) {
     glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
@@ -59,13 +53,6 @@ mesh_id system::add_mesh(const geometry& geom) {
     return size-1;
 }
 
-void system::update_uniforms() {
-    auto view = cam_.view();
-    auto proj = cam_.proj(window_->aspect());
-    raster_program_->update_view(glm::value_ptr(view));
-    raster_program_->update_proj(glm::value_ptr(proj));
-}
-
 // TODO: add fencing and ring buffer
 void system::draw() {
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, meshes_->info_.size_, 0);
@@ -81,10 +68,15 @@ object system::add_instance(const mesh_id id, const offset_t& off, const color_t
     return {.id_ = ins_id};
 }
 
+void system::update_camera(const camera& cam) {
+    raster_program_->update_view(compute_view(cam));
+}
+
 void system::load_geom() {
+    add_mesh(load_triangle());
     add_mesh(load_cube());
     add_mesh(load_sphere());
-    add_mesh(load_cylinder());
+    // add_mesh(load_cylinder());
 }
 
 // TODO: track added objs, find obj with id = last and set id = obj.id_;
@@ -98,7 +90,7 @@ void system::remove_instance(const object& obj) {
     cmd.instance_count--;
 }
 
-// TODO: check if instance alive 
+// TODO: check if instance alive
 // offset with mesh id, if not specified update all
 void system::update_colors(const std::vector<color_t>& colors) const {
     host_to_device(models_->colors_.data(), colors);
@@ -111,7 +103,9 @@ void system::update_offsets(const std::vector<offset_t>& offsets) const {
 
 void system::set_initial_state() {
     raster_program_->use();
-    update_uniforms();
+    auto proj = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 100.f);
+    raster_program_->update_proj(proj);
+    glEnable(GL_DEPTH_TEST);
     glBindVertexArray(meshes_->attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_->id_);
 }

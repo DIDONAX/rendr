@@ -5,12 +5,14 @@
 #include <print>
 
 #include "glad/gl.h"
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace rendr::glw {
 
 using uint = GLuint;
 
-enum Flags : uint32_t {
+enum Flags {
     Static = 0,
     Dynamic = GL_DYNAMIC_STORAGE_BIT,
     Read = GL_MAP_READ_BIT,
@@ -48,6 +50,9 @@ struct shader_storage {
         assert(data_ && "data() fail: check flags");
         return data_;
     }
+
+    shader_storage(const shader_storage&) = delete;
+    shader_storage& operator=(const shader_storage&) = delete;
     private:
         void* data_{nullptr};
         size_t capacity_{0};
@@ -83,11 +88,11 @@ struct shader_program {
     int view_loc_{-1};
     int proj_loc_{-1};
 
-    void update_view(float* mat4f) {
-        glUniformMatrix4fv(view_loc_, 1, GL_FALSE, mat4f);
+    void update_view(const glm::mat4& mat4f) {
+        glUniformMatrix4fv(view_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
     }
-    void update_proj(float* mat4f) {
-        glUniformMatrix4fv(proj_loc_, 1, GL_FALSE, mat4f);
+    void update_proj(const glm::mat4& mat4f) {
+        glUniformMatrix4fv(proj_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
     }
     void use() {glUseProgram(id_);}
 
@@ -95,7 +100,6 @@ struct shader_program {
         uint s = glCreateShader(type);
         glShaderSource(s, 1, &src, nullptr);
         glCompileShader(s);
-        int success;
         glAttachShader(id_, s);
         return s;
     }

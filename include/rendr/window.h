@@ -2,30 +2,59 @@
 
 #include "glad/gl.h"
 #include "GLFW/glfw3.h"
+#include "glm/ext/vector_float2.hpp"
+#include "rendr/types.h"
+#include <string_view>
 
-namespace rendr::glfw {
+namespace rendr {
 
-struct window {
-    GLFWwindow* glf_window;
-    ~window();
-    window();
+enum State {
+    Press = GLFW_PRESS,
+    Release = GLFW_RELEASE
+};
 
-    inline void clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
-    inline bool is_open() const {return !glfwWindowShouldClose(glf_window);}
-    inline void display() const {glfwSwapBuffers(glf_window);}
-    inline void poll_event() const {glfwPollEvents();}
-    inline GLFWwindow* handle() const {return glf_window;}
-    inline void set_cursor_pos_cb(GLFWcursorposfun cb) const {glfwSetCursorPosCallback(glf_window, cb);}
-    inline void set_key_cb(GLFWkeyfun cb) const {glfwSetKeyCallback(glf_window, cb); }
-    inline void set_scroll_cb(GLFWscrollfun cb) const {glfwSetScrollCallback(glf_window, cb);}
-    inline float aspect() const {
-        int w, h;
-        glfwGetFramebufferSize(glf_window, &w, &h);
-        return static_cast<float>(w) / h;
-    }
-    inline void lock_cursor() const {glfwSetInputMode(glf_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);}
-    inline void unlock_cursor() const {glfwSetInputMode(glf_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);}
-    inline bool key(int glfwKey) const { return glfwGetKey(glf_window, glfwKey) == GLFW_PRESS; }
+enum Key {
+    A = GLFW_KEY_A,
+    W = GLFW_KEY_W,
+    S = GLFW_KEY_S,
+    D = GLFW_KEY_D,
+    R = GLFW_KEY_R,
+    C = GLFW_KEY_C,
+};
+
+enum Mouse {
+    Left = GLFW_MOUSE_BUTTON_LEFT,
+    Right = GLFW_MOUSE_BUTTON_RIGHT
+};
+
+struct window_settings {
+    int height{900};
+    bool vsync{false};
+    bool disable_cursor{false};
+    color_t bg{};
+    std::string_view title{"Default"};
+};
+
+class window {
+    public:
+        ~window();
+        window(const window_settings& settings = {});
+
+        void clear() const;
+        bool is_open() const;
+        void display() const;
+        void poll_event() const;
+        State key(const Key& k) const;
+        State mouse(const Mouse& m) const;
+        void disable_cursor(bool flag);
+        void get_mouse_pos(double& x, double& y) const;
+        glm::vec2 mouse_delta();
+
+    private:
+        GLFWwindow* glf_window;
+        glm::vec2 mouse_last_{0, 0};
+        bool mouse_first_{true};
+        window_settings settings_{};
 };
 
 } // namespace rendr

@@ -11,8 +11,6 @@
 
 namespace rendr {
 
-using namespace glfw;
-
 // too keep ref stable in case of swaping
 struct object {
     instance_id id_;
@@ -20,10 +18,7 @@ struct object {
 
 // TODO: SDP vs noSDP possible 2x
 struct system {
-    window* window_;
     shader_program* raster_program_;
-    camera cam_;
-
     mesh_storage* meshes_;
     model_storage* models_;
     shader_storage* mdi_;
@@ -33,14 +28,15 @@ struct system {
 
     void update_colors(const std::vector<color_t>& colors) const;
     void update_offsets(const std::vector<offset_t>& offsets) const;
-    void update_uniforms();
+
+    void update_camera(const camera&);
 
     object add_instance(const mesh_id, const offset_t& off = {}, const color_t& col = glm::vec4{1}); 
     mesh_id add_mesh(const geometry&);
  
     void draw();
 
-    // removing will prob never happen in rt scenario, for debug gui mostly
+    // removing will prob never happen in real scenario, for debug gui mostly
     void remove_instance(const object&);
     void wireframe(const bool b);
 

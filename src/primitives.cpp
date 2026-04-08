@@ -23,6 +23,17 @@ geometry load_cube() {
     return g;
 }
 
+geometry load_triangle() {
+    return {
+        .vertices_ = {
+            {0.0f,0.5f,0.0f},
+            {-0.5f,-0.5f,0.0f},
+            {0.5f,-0.5f,0.0f}
+        },
+        .indices_ = {0, 1, 2}
+    };
+}
+
 geometry load_sphere(int lat, int lon) {
     geometry g;
     for(int i = 0; i <= lat; i++) {
