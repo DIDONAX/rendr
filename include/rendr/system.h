@@ -16,6 +16,12 @@ struct object {
     instance_id id_;
 };
 
+struct object_desc {
+    glm::vec3 position_{0};
+    float uniform_scale_{1};
+    color_t color_{1};
+};
+
 // TODO: SDP vs noSDP possible 2x
 struct system {
     shader_program* raster_program_;
@@ -25,7 +31,7 @@ struct system {
 
     system();
     ~system();
-
+    void set_attr(const object&, const object_desc&);
     void update_colors(const mesh_id, const std::vector<color_t>&) const;
     void update_rotations(const mesh_id, const std::vector<rotation_t>&) const;
     void update_offsets(const mesh_id, const std::vector<offset_t>&) const;
@@ -33,6 +39,7 @@ struct system {
     void update_global_offs(const std::vector<offset_t>&) const;
     void update_camera(const camera&);
     object add_instance(const mesh_id, const offset_t& off = {}, const color_t& col = glm::vec4{1}, const rotation_t& rot = glm::mat4{1}, const scale_t& scale = glm::mat4{1});
+    object add_instance(const mesh_id, const glm::vec3& off = {}, const color_t& col = glm::vec4{1}, const rotation_t& rot = glm::mat4{1}, const scale_t& scale = glm::mat4{1});
     mesh_id add_mesh(const geometry&);
  
     void draw();

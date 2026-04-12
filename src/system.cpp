@@ -66,6 +66,18 @@ object system::add_instance(const mesh_id id, const offset_t& off, const color_t
     return {.id_ = ins_id};
 }
 
+object system::add_instance(const mesh_id id, const glm::vec3& off, const color_t& col, const rotation_t& rot, const scale_t& scale) {
+    // add checks 
+    auto& cmd = static_cast<draw_command*>(mdi_->data())[id];
+    auto ins_id = id * models_->capacity_ + cmd.instance_count;
+    static_cast<offset_t*>(models_->offsets_.data())[ins_id] = {off,1};
+    static_cast<color_t*>(models_->colors_.data())[ins_id] = col;
+    static_cast<rotation_t*>(models_->rotations_.data())[ins_id] = rot;
+    static_cast<scale_t*>(models_->scales_.data())[ins_id] = scale;
+    cmd.instance_count++;
+    return {.id_ = ins_id};
+}
+
 void system::update_camera(const camera& cam) {
     raster_program_->update_view(compute_view(cam));
 }
@@ -126,6 +138,15 @@ void system::set_initial_state() {
     // glEnable(GL_CULL_FACE);
     glBindVertexArray(meshes_->attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_->id_);
+    camera cam;
+    update_camera(cam);
+}
+
+void system::set_attr(const object& obj, const object_desc& desc) {
+    static_cast<offset_t*>(models_->offsets_.data())[obj.id_] = {desc.position_, 1};
+    static_cast<color_t*>(models_->colors_.data())[obj.id_] = desc.color_;
+    auto s = desc.uniform_scale_;
+    static_cast<scale_t*>(models_->scales_.data())[obj.id_] = glm::scale(glm::mat4{1}, {s,s,s});
 }
 
 // TODO: refractor into a resizable buffer/vector class, removes capacity bs
