@@ -1,14 +1,14 @@
 #include "rendr/primitives.h"
 #include <cmath>
 
-// all follow ccw
+// all follow ccw, add loading from file 
 namespace rendr {
 
 geometry load_cube() {
     geometry g;
     g.vertices_ = {
-        {-0.05,-0.05, 0.05}, { 0.05,-0.05, 0.05}, { 0.05, 0.05, 0.05}, {-0.05, 0.05, 0.05}, // Front (z+)
-        {-0.05,-0.05,-0.05}, { 0.05,-0.05,-0.05}, { 0.05, 0.05,-0.05}, {-0.05, 0.05,-0.05}  // Back (z-)
+        {-0.5f,-0.5f, 0.5f}, {0.5f,-0.5f,0.5f}, {0.5f,0.5f,0.5f}, {-0.5f,0.5f,0.5f},
+        {-0.5f,-0.5f,-0.5f}, {0.5f,-0.5f,-0.5f}, {0.5f,0.5f,-0.5f}, {-0.5f,0.5f,-0.5f}
     };
     g.indices_ = {
         0,1,2,0,2,3, // f

@@ -1,5 +1,6 @@
 #include "rendr/system.h"
 #include "rendr/primitives.h"
+#include "rendr/types.h"
 
 
 namespace rendr {
@@ -29,8 +30,9 @@ void system::wireframe(const bool b) {
     glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
 }
 
-// TODO: change when allocation logic is changes
+// TODO: change when allocation logic is changed
 mesh_id system::add_mesh(const geometry& geom) {
+    // add checks
     auto& size = meshes_->info_.size_;
     auto& cmd = static_cast<draw_command*>(mdi_->data())[size];
     cmd = { 
@@ -50,12 +52,14 @@ void system::draw() {
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, meshes_->info_.size_, 0);
 };
 
-object system::add_instance(const mesh_id id, const offset_t& off, const color_t& col) {
+object system::add_instance(const mesh_id id, const offset_t& off, const color_t& col, const rotation_t& rot, const scale_t& scale) {
     // add checks 
     auto& cmd = static_cast<draw_command*>(mdi_->data())[id];
     auto ins_id = id * models_->capacity_ + cmd.instance_count;
     static_cast<offset_t*>(models_->offsets_.data())[ins_id] = off;
     static_cast<color_t*>(models_->colors_.data())[ins_id] = col;
+    static_cast<rotation_t*>(models_->rotations_.data())[ins_id] = rot;
+    static_cast<scale_t*>(models_->scales_.data())[ins_id] = scale;
     cmd.instance_count++;
     return {.id_ = ins_id};
 }
@@ -71,7 +75,13 @@ void system::load_geom() {
     // add_mesh(load_cylinder());
 }
 
-// TODO: track added objs, find obj with id = last and set id = obj.id_;
+void system::update_rotations(const mesh_id id, const std::vector<rotation_t>& rots) const {
+    assert(rots.size() <= models_->capacity_ && "instance capacity reached, resize needed");
+    auto off = id * models_->capacity_;
+    host_to_device((rotation_t*)models_->rotations_.data()+off, rots);
+}
+
+// TODO: track added objs if remove is enabled, find obj with id = last and set id = obj.id_;
 // void system::remove_instance(const object& obj) {
 //     // add checks
 //     auto mesh_id = obj.id_ / models_->capacity_;
@@ -90,7 +100,6 @@ void system::update_colors(const mesh_id id, const std::vector<color_t>& colors)
     host_to_device((color_t*)models_->colors_.data()+off, colors);
 }
 
-// offset with mesh id, if not specified update all
 void system::update_offsets(const mesh_id id, const std::vector<offset_t>& offsets) const {
     assert(offsets.size() <= models_->capacity_ && "instance capacity reached, resize needed");
     auto off = id * models_->capacity_; 
@@ -107,25 +116,26 @@ void system::update_global_offs(const std::vector<offset_t>& offsets) const {
     host_to_device((offset_t*)models_->offsets_.data(), offsets);
 } 
 
-
-
 void system::set_initial_state() {
     raster_program_->use();
-    auto proj = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 100.f);
+    auto proj = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f);
     raster_program_->update_proj(proj);
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);
     glBindVertexArray(meshes_->attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_->id_);
 }
-// TODO: refractor into a resizable buffer class, removes capacity bs
-// resizable_buffer<T, F> 
+
+// TODO: refractor into a resizable buffer/vector class, removes capacity bs
+// vector<T, F> 
 void system::allocate_resources() {
     auto& vert = meshes_->vertices_;
     auto& ind = meshes_->indices_;
 
     auto& off = models_->offsets_;
     auto& col = models_->colors_;
+    auto& rot = models_->rotations_;
+    auto& scale = models_->scales_;
 
     mdi_->alloc(nullptr, meshes_->info_.capacity_* sizeof(draw_command), map_flags | Static);
     vert.alloc(nullptr, meshes_->info_.vert_capacity_ * sizeof(position_t), map_flags | Dynamic);
@@ -136,11 +146,17 @@ void system::allocate_resources() {
 
     off.alloc(nullptr, meshes_->info_.capacity_ * models_->capacity_ * sizeof(offset_t), map_flags | Dynamic);
     col.alloc(nullptr, meshes_->info_.capacity_ * models_->capacity_ * sizeof(color_t), map_flags | Dynamic);
+    rot.alloc(nullptr, meshes_->info_.capacity_ * models_->capacity_ * sizeof(rotation_t), map_flags | Dynamic);
+    scale.alloc(nullptr, meshes_->info_.capacity_ * models_->capacity_ * sizeof(scale_t), map_flags | Dynamic);
     off.map(map_flags);
     col.map(map_flags);
+    rot.map(map_flags);
+    scale.map(map_flags);
 
     off.binding_loc(0);
     col.binding_loc(1);
+    rot.binding_loc(2);
+    scale.binding_loc(3);
 }
 
 void system::specify_attributes() {
