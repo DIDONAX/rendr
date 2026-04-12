@@ -36,6 +36,7 @@ struct system {
     mesh_id add_mesh(const geometry&);
  
     void draw();
+    void clear() const;
 
     // removing will prob never happen in real scenario, for debug gui mostly
     // void remove_instance(const object&);

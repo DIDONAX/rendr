@@ -23,8 +23,6 @@ window::window(const window_settings& settings) {
 
 window::~window() {glfwDestroyWindow(glf_window);}
 
-void window::clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
-
 bool window::is_open() const {return!glfwWindowShouldClose(glf_window);}
 
 void window::display() const {glfwSwapBuffers(glf_window);}

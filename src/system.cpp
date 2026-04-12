@@ -30,6 +30,8 @@ void system::wireframe(const bool b) {
     glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
 }
 
+void system::clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
+
 // TODO: change when allocation logic is changed
 mesh_id system::add_mesh(const geometry& geom) {
     // add checks

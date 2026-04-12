@@ -45,7 +45,6 @@ class window {
         ~window();
         window(const window_settings& settings = {});
 
-        void clear() const;
         bool is_open() const;
         void display() const;
         void poll_event() const;
