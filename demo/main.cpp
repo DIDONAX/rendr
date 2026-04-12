@@ -17,7 +17,7 @@ void rotate_cam(camera& c, float r, float t) {
 
 void spawn_instance(rendr::system& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
     static std::mt19937 gen(std::random_device{}());
-    static std::uniform_real_distribution<float> dist(-300.0f, 300.0f);
+    static std::uniform_real_distribution<float> dist(-600.0f, 600.0f);
     glm::vec4 pos{dist(gen), dist(gen), dist(gen), 1};
     s.add_instance(1, pos);
     offs.push_back(pos);
@@ -39,7 +39,7 @@ int main() {
     camera cam;
     cam.speed_/=3;
     window_settings set;
-    set.title = "color and offset attributes streaming stress test";
+    set.title = "Stress Test: Streaming 1M color and offset instances";
 
     window win{set};
     rendr::system s;
@@ -48,19 +48,19 @@ int main() {
     std::vector<offset_t> offs;
     std::vector<color_t> cols;
 
-    for (int i = 0; i < 100000; ++i) spawn_instance(s, offs, cols);
+    for (int i = 0; i < 1000000; ++i) spawn_instance(s, offs, cols);
     while (win.is_open()) {
         win.poll_event();
         curr_frame = glfwGetTime();
         compute_fps(curr_frame);
 
-        rotate_cam(cam, 800, curr_frame);
+        rotate_cam(cam, 2300, curr_frame);
 
         s.update_offsets(1, offs);
         s.update_colors(1, cols);
         s.update_camera(cam);
 
-        win.clear();
+        s.clear();
         s.draw();
         win.display();
     }

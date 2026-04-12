@@ -7,7 +7,7 @@ using namespace glw;
 
 struct model_storage {
     // per mesh
-    size_t capacity_{100000};
+    size_t capacity_{1000000};
     shader_storage offsets_;
     shader_storage colors_;
     shader_storage rotations_;
