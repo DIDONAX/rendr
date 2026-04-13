@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string_view>
 
 #include "GLFW/glfw3.h"
@@ -36,7 +37,7 @@ struct window_settings {
     int height{1000};
     bool vsync{false};
     bool disable_cursor{false};
-    color_t bg{};
+    color_t bg{1,1,1,1};
     std::string_view title{"Default"};
 };
 
@@ -54,6 +55,15 @@ class window {
         void get_mouse_pos(double& x, double& y) const;
         glm::vec2 mouse_delta();
 
+        template<typename Fn>
+        void scroll_cb(Fn fn) {
+            static std::function<void(double, double)> stored = fn;
+            glfwSetWindowUserPointer(glf_window, &stored);
+            glfwSetScrollCallback(glf_window, [](GLFWwindow* window, double x, double y) {
+                auto* f = static_cast<std::function<void(double, double)>*>(glfwGetWindowUserPointer(window));
+                (*f)(x, y);
+            });
+        } 
     private:
         GLFWwindow* glf_window;
         glm::vec2 mouse_last_{0, 0};

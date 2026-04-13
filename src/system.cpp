@@ -49,7 +49,7 @@ mesh_id system::add_mesh(const geometry& geom) {
     return size-1;
 }
 
-// TODO: add fencing and triple ring buffer
+// TODO: add explicit fencing and triple ring buffer
 void system::draw() {
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, meshes_->info_.size_, 0);
 };
