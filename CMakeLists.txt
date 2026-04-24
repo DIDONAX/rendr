@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(rendr LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(GLAD_REBUILD OFF CACHE BOOL "")
 option(BUILD_DOCS "Build documentation" OFF)
