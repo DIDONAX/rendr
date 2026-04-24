@@ -3,25 +3,28 @@ project(rendr LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(GLAD_REBUILD OFF CACHE BOOL "")
+option(BUILD_DOCS "Build documentation" OFF)
+
 file(GLOB rendr-source src/*.cpp)
 include(FetchContent)
 
 
 # GLFW
 FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG master 
-    GIT_PROGRESS TRUE
+	glfw
+	GIT_REPOSITORY https://github.com/glfw/glfw.git
+	GIT_TAG master
+	GIT_PROGRESS TRUE
 )
 
 # GLAD
 FetchContent_Declare(
-    glad
-    GIT_REPOSITORY https://github.com/Dav1dde/glad.git
-    GIT_TAG v2.0.6
-    GIT_PROGRESS TRUE
-    SOURCE_SUBDIR cmake
+	glad
+	GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+	GIT_TAG v2.0.6
+	GIT_PROGRESS TRUE
+	SOURCE_SUBDIR cmake
 )
 
 # GLM
