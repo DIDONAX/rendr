@@ -1,0 +1,7 @@
+if(APPLE)
+    message(STATUS "macOS build detected")
+elseif(WIN32)
+    message(STATUS "Windows build detected")
+elseif(UNIX)
+    message(STATUS "Linux build detected")
+endif()
