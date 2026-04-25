@@ -5,15 +5,17 @@
 #include "rendr/utils.h"
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <print>
 #include <string>
 #include <filesystem>
+#include <sys/types.h>
 
 namespace rendr::glw {
 
 using uint = GLuint;
 
-enum Flags {
+enum Flags : GLuint {
     Static = 0,
     Dynamic = GL_DYNAMIC_STORAGE_BIT,
     Read = GL_MAP_READ_BIT,
@@ -22,6 +24,7 @@ enum Flags {
     Coherent = GL_MAP_COHERENT_BIT,
 };
 
+
 enum ShaderType {
     Vertex = GL_VERTEX_SHADER,
     Fragment = GL_FRAGMENT_SHADER,
@@ -29,54 +32,78 @@ enum ShaderType {
     Compute = GL_COMPUTE_SHADER
 };
 
-struct shader_storage {
-    uint id_{0};
-    ~shader_storage() {
-        if (id_!= 0) {
-            unmap();
+template<std::size_t C, typename T>
+class mapped_buffer {
+    public :
+        mapped_buffer(T* data = nullptr, uint usage = Dynamic) {
+            glCreateBuffers(1, &id_);
+            if (id_ == 0) throw std::runtime_error("glCreateBuffers failed");
+            auto storage_flags = Flags::Persistent | Flags::Coherent | Flags::Write;
+            glNamedBufferStorage(id_, C * sizeof(T), (void*)data , storage_flags);
+            data_ = static_cast<T*>(glMapNamedBufferRange(id_, 0, C * sizeof(T), storage_flags));
+            if (!data_) throw std::runtime_error("glMapNamedBufferRange failed");
+        }
+
+        ~mapped_buffer() {
+            if (id_== 0) return; 
+            glUnmapNamedBuffer(id_);
             glDeleteBuffers(1, &id_);
         }
-    }
-    shader_storage() {glCreateBuffers(1, &id_);}
-    void alloc(const auto data, const size_t bytes, const uint32_t sf) {
-        assert(id_ != 0 && "alloc() fail: delete and reallocate instead");
-        glNamedBufferStorage(id_, bytes, data, sf);
-        capacity_ = bytes;
-        alloc_flags_ = sf;
-    }
-    void binding_loc(const uint32_t loc) const {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
-    }
-    void map(const uint32_t mf) {
-        data_ = glMapNamedBufferRange(id_, 0, capacity_, mf);
-        assert(data_ && "map() fail: check flags");
-    }
-    void unmap() {glUnmapNamedBuffer(id_);}
 
-    // this shouldnt be stored in case of realloc
-    void* data() const {
-        assert(data_ && "data() fail: check flags");
-        return data_;
-    }
+        mapped_buffer(const mapped_buffer&) = delete;
+        mapped_buffer& operator=(const mapped_buffer&) = delete;
+        mapped_buffer& operator=(mapped_buffer&&) noexcept;
 
-    shader_storage(const shader_storage&) = delete;
-    shader_storage& operator=(const shader_storage&) = delete;
+        void binding_loc(const uint32_t loc) const {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
+        }
+
+        uint id() const {return id_;}
+
+        void push_back(const T& v) {
+            if (size_ >= C) throw std::overflow_error("mapped_buffer capacity exceeded");
+            data_[size_++] = v;
+        }
+
+        std::size_t capacity() const { return C;}
+        std::size_t size() const { return size_;}
+        void insert(const std::vector<T>& src) {
+            auto s = size_ + src.size();
+            if (s > C) throw std::overflow_error("mapped_buffer capacity exceeded");
+            host_to_device(data_+size_, src);
+            size_+= src.size();
+        }
+
+        T* data() const {return data_;}
+
     private:
-        void* data_{nullptr};
-        size_t capacity_{0};
-        uint32_t alloc_flags_{0};
+        uint id_{0};
+        T* data_{nullptr};
+        size_t size_{0};
 };
 
 struct vertex_array {
+    struct attribute {
+        uint location_{};
+        int size_{};
+        uint stride_{}; // relative offset 
+    };
+
     uint id_;
 
     ~vertex_array() {if (id_ != 0) glDeleteVertexArrays(1, &id_);}
     vertex_array() {glCreateVertexArrays(1, &id_);}
-    void bind_element_buff(const shader_storage& ebo) const {
-        glVertexArrayElementBuffer(id_, ebo.id_);
+
+    void set(const attribute& attr) {
+        glEnableVertexArrayAttrib(id_, attr.location_);
+        glVertexArrayAttribFormat(id_, attr.location_, attr.size_, GL_FLOAT, GL_FALSE, attr.stride_);
+        glVertexArrayAttribBinding(id_, attr.location_, 0);
     }
-    void bind_vertex_buff(const shader_storage& vbo, const uint bind_loc, const size_t stride) const {
-        glVertexArrayVertexBuffer(id_, bind_loc, vbo.id_, 0, stride);
+    void set_element_buff(const auto& ebo) const {
+        glVertexArrayElementBuffer(id_, ebo.id());
+    }
+    void set_vertex_buff(const auto& vbo, const uint bind_loc, const size_t stride) const {
+        glVertexArrayVertexBuffer(id_, bind_loc, vbo.id(), 0, stride);
     }
     void enable_attrib(const uint loc) const {
         glEnableVertexArrayAttrib(id_, loc);

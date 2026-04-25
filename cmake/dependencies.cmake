@@ -21,8 +21,4 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(glfw glad glm)
 
-if(APPLE)
-    glad_add_library(glad_lib STATIC REPRODUCIBLE LOADER API gl:core=4.1)
-else()
-    glad_add_library(glad_lib STATIC REPRODUCIBLE LOADER API gl:core=4.6)
-endif()
+glad_add_library(glad_lib STATIC REPRODUCIBLE LOADER API gl:core=4.6)

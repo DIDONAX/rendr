@@ -1,4 +1,6 @@
 #include "glm/ext/matrix_transform.hpp"
+#include "rendr/constants.h"
+#include "rendr/model_storage.h"
 #include "rendr/primitives.h"
 #include "rendr/system.h"
 #include "rendr/camera.h"
@@ -48,14 +50,13 @@ int main() {
     std::vector<offset_t> offs;
     std::vector<color_t> cols;
 
-    for (int i = 0; i < 1000000; ++i) spawn_instance(s, offs, cols);
+    for (int i = 0; i < kInstanceCapacity; ++i) spawn_instance(s, offs, cols);
     while (win.is_open()) {
         win.poll_event();
         curr_frame = glfwGetTime();
         compute_fps(curr_frame);
 
         rotate_cam(cam, 2300, curr_frame);
-
         s.update_offsets(1, offs);
         s.update_colors(1, cols);
         s.update_camera(cam);
