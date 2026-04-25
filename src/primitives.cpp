@@ -1,5 +1,4 @@
 #include "rendr/primitives.h"
-#include <cmath>
 
 namespace rendr {
 

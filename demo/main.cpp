@@ -1,10 +1,7 @@
-#include "glm/ext/matrix_transform.hpp"
-#include "rendr/constants.h"
-#include "rendr/model_storage.h"
+#include "rendr/context.h"
 #include "rendr/primitives.h"
-#include "rendr/system.h"
 #include "rendr/camera.h"
-#include "rendr/types.h"
+#include "rendr/constants.h"
 #include "rendr/window.h"
 #include <print>
 #include <random>
@@ -17,13 +14,14 @@ void rotate_cam(camera& c, float r, float t) {
     c.position_.z = r * std::sin(theta);
 }
 
-void spawn_instance(rendr::system& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
+void spawn_instance(rendr::context& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
     static std::mt19937 gen(std::random_device{}());
     static std::uniform_real_distribution<float> dist(-600.0f, 600.0f);
-    glm::vec4 pos{dist(gen), dist(gen), dist(gen), 1};
-    s.add_instance(1, pos);
-    offs.push_back(pos);
-    cols.push_back(glm::vec4{1});
+    model_matrix mat;
+    mat.offset_ = {dist(gen), dist(gen), dist(gen), 1};
+    s.add_instance(cube, mat, Red);
+    offs.push_back(mat.offset_);
+    cols.push_back(Red);
 }
 
 void compute_fps(float curr_frame) {
@@ -44,7 +42,7 @@ int main() {
     set.title = "Stress Test: Streaming 1M color and offset instances";
 
     window win{set};
-    rendr::system s;
+    rendr::context s;
 
     float curr_frame{0};
     std::vector<offset_t> offs;
@@ -56,7 +54,7 @@ int main() {
         curr_frame = glfwGetTime();
         compute_fps(curr_frame);
 
-        rotate_cam(cam, 2300, curr_frame);
+        rotate_cam(cam, 1300, curr_frame);
         s.update_offsets(1, offs);
         s.update_colors(1, cols);
         s.update_camera(cam);

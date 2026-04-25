@@ -1,15 +1,12 @@
 #pragma once
 
-#include "glad/gl.h"
-#include "glm/gtc/type_ptr.hpp"
-#include "rendr/utils.h"
-#include <cassert>
-#include <cstddef>
-#include <cstring>
 #include <print>
-#include <string>
-#include <filesystem>
-#include <sys/types.h>
+#include "glad/gl.h"
+
+#include "glm/ext/matrix_float4x4.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+#include "rendr/utils.h"
 
 namespace rendr::glw {
 
@@ -35,6 +32,7 @@ enum ShaderType {
 template<std::size_t C, typename T>
 class mapped_buffer {
     public :
+        // investigate usage flag bug
         mapped_buffer(T* data = nullptr, uint usage = Dynamic) {
             glCreateBuffers(1, &id_);
             if (id_ == 0) throw std::runtime_error("glCreateBuffers failed");
@@ -54,27 +52,27 @@ class mapped_buffer {
         mapped_buffer& operator=(const mapped_buffer&) = delete;
         mapped_buffer& operator=(mapped_buffer&&) noexcept;
 
+
+        uint id() const {return id_;}
+        std::size_t capacity() const { return C;}
+        std::size_t size() const { return size_;}
+        T* data() const {return data_;}
+
         void binding_loc(const uint32_t loc) const {
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
         }
-
-        uint id() const {return id_;}
 
         void push_back(const T& v) {
             if (size_ >= C) throw std::overflow_error("mapped_buffer capacity exceeded");
             data_[size_++] = v;
         }
 
-        std::size_t capacity() const { return C;}
-        std::size_t size() const { return size_;}
         void insert(const std::vector<T>& src) {
             auto s = size_ + src.size();
             if (s > C) throw std::overflow_error("mapped_buffer capacity exceeded");
             host_to_device(data_+size_, src);
             size_+= src.size();
         }
-
-        T* data() const {return data_;}
 
     private:
         uint id_{0};

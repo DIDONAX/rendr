@@ -1,11 +1,7 @@
 #pragma once
 
-#include <vector>
-
 #include "rendr/glw.h"
-#include "rendr/types.h"
 #include "rendr/constants.h"
-#include "rendr/utils.h"
 
 namespace rendr {
 

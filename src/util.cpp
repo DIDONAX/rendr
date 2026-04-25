@@ -1,7 +1,6 @@
 #include "rendr/utils.h"
 
 #include <fstream>
-#include <stdexcept>
 
 namespace rendr {
 
