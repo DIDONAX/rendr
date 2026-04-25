@@ -1,15 +1,18 @@
 #pragma once
 
+#include <print>
 #include "glad/gl.h"
+
+#include "glm/ext/matrix_float4x4.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include <cassert>
-#include <cstddef>
+
+#include "rendr/utils.h"
 
 namespace rendr::glw {
 
 using uint = GLuint;
 
-enum Flags {
+enum Flags : GLuint {
     Static = 0,
     Dynamic = GL_DYNAMIC_STORAGE_BIT,
     Read = GL_MAP_READ_BIT,
@@ -18,54 +21,87 @@ enum Flags {
     Coherent = GL_MAP_COHERENT_BIT,
 };
 
-struct shader_storage {
-    uint id_{0};
-    ~shader_storage() {
-        if (id_!= 0) {
-            unmap();
+
+enum ShaderType {
+    Vertex = GL_VERTEX_SHADER,
+    Fragment = GL_FRAGMENT_SHADER,
+    Geometry = GL_GEOMETRY_SHADER,
+    Compute = GL_COMPUTE_SHADER
+};
+
+template<std::size_t C, typename T>
+class mapped_buffer {
+    public :
+        // investigate usage flag bug
+        mapped_buffer(T* data = nullptr, uint usage = Dynamic) {
+            glCreateBuffers(1, &id_);
+            if (id_ == 0) throw std::runtime_error("glCreateBuffers failed");
+            auto storage_flags = Flags::Persistent | Flags::Coherent | Flags::Write;
+            glNamedBufferStorage(id_, C * sizeof(T), (void*)data , storage_flags);
+            data_ = static_cast<T*>(glMapNamedBufferRange(id_, 0, C * sizeof(T), storage_flags));
+            if (!data_) throw std::runtime_error("glMapNamedBufferRange failed");
+        }
+
+        ~mapped_buffer() {
+            if (id_== 0) return; 
+            glUnmapNamedBuffer(id_);
             glDeleteBuffers(1, &id_);
         }
-    }
-    shader_storage() {glCreateBuffers(1, &id_);}
-    void alloc(const auto data, const size_t bytes, const uint32_t sf) {
-        assert(id_ != 0 && "alloc() fail: delete and reallocate instead");
-        glNamedBufferStorage(id_, bytes, data, sf);
-        capacity_ = bytes;
-        alloc_flags_ = sf;
-    }
-    void binding_loc(const uint32_t loc) const {
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
-    }
-    void map(const uint32_t mf) {
-        data_ = glMapNamedBufferRange(id_, 0, capacity_, mf);
-        assert(data_ && "map() fail: check flags");
-    }
-    void unmap() {glUnmapNamedBuffer(id_);}
 
-    // this shouldnt be stored in case of realloc
-    void* data() const {
-        assert(data_ && "data() fail: check flags");
-        return data_;
-    }
+        mapped_buffer(const mapped_buffer&) = delete;
+        mapped_buffer& operator=(const mapped_buffer&) = delete;
+        mapped_buffer& operator=(mapped_buffer&&) noexcept;
 
-    shader_storage(const shader_storage&) = delete;
-    shader_storage& operator=(const shader_storage&) = delete;
+
+        uint id() const {return id_;}
+        std::size_t capacity() const { return C;}
+        std::size_t size() const { return size_;}
+        T* data() const {return data_;}
+
+        void binding_loc(const uint32_t loc) const {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, loc, id_); 
+        }
+
+        void push_back(const T& v) {
+            if (size_ >= C) throw std::overflow_error("mapped_buffer capacity exceeded");
+            data_[size_++] = v;
+        }
+
+        void insert(const std::vector<T>& src) {
+            auto s = size_ + src.size();
+            if (s > C) throw std::overflow_error("mapped_buffer capacity exceeded");
+            host_to_device(data_+size_, src);
+            size_+= src.size();
+        }
+
     private:
-        void* data_{nullptr};
-        size_t capacity_{0};
-        uint32_t alloc_flags_{0};
+        uint id_{0};
+        T* data_{nullptr};
+        size_t size_{0};
 };
 
 struct vertex_array {
+    struct attribute {
+        uint location_{};
+        int size_{};
+        uint stride_{}; // relative offset 
+    };
+
     uint id_;
 
     ~vertex_array() {if (id_ != 0) glDeleteVertexArrays(1, &id_);}
     vertex_array() {glCreateVertexArrays(1, &id_);}
-    void bind_element_buff(const shader_storage& ebo) const {
-        glVertexArrayElementBuffer(id_, ebo.id_);
+
+    void set(const attribute& attr) {
+        glEnableVertexArrayAttrib(id_, attr.location_);
+        glVertexArrayAttribFormat(id_, attr.location_, attr.size_, GL_FLOAT, GL_FALSE, attr.stride_);
+        glVertexArrayAttribBinding(id_, attr.location_, 0);
     }
-    void bind_vertex_buff(const shader_storage& vbo, const uint bind_loc, const size_t stride) const {
-        glVertexArrayVertexBuffer(id_, bind_loc, vbo.id_, 0, stride);
+    void set_element_buff(const auto& ebo) const {
+        glVertexArrayElementBuffer(id_, ebo.id());
+    }
+    void set_vertex_buff(const auto& vbo, const uint bind_loc, const size_t stride) const {
+        glVertexArrayVertexBuffer(id_, bind_loc, vbo.id(), 0, stride);
     }
     void enable_attrib(const uint loc) const {
         glEnableVertexArrayAttrib(id_, loc);
@@ -79,57 +115,58 @@ struct vertex_array {
 
 };
 
-// this is too coupled, needs rewrite
-struct shader_program {
+struct shader {
     uint id_{0};
-    int view_loc_{-1};
-    int proj_loc_{-1};
 
-    void update_view(const glm::mat4& mat4f) {
-        glUniformMatrix4fv(view_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
-    }
-    void update_proj(const glm::mat4& mat4f) {
-        glUniformMatrix4fv(proj_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
-    }
-    void use() {glUseProgram(id_);}
+    ~shader() {glDeleteShader(id_);} 
 
-    uint compile(auto type, const char* src) {
-        uint s = glCreateShader(type);
-        glShaderSource(s, 1, &src, nullptr);
-        glCompileShader(s);
-        glAttachShader(id_, s);
-        return s;
+    shader(std::filesystem::path path, const ShaderType& type) {
+        id_ = glCreateShader(static_cast<GLenum>(type));
+        auto src = load_file(path);
+        auto ptr = src.data();
+        glShaderSource(id_, 1, &ptr, nullptr);
+        glCompileShader(id_);
+
+        int compiled = 0;
+        glGetShaderiv(id_, GL_COMPILE_STATUS, &compiled);
+        if (!compiled) {
+            char log[512]; 
+            glGetShaderiv(id_, GL_INFO_LOG_LENGTH, nullptr);
+            glGetShaderInfoLog(id_, sizeof(log), nullptr , log);
+            std::println("compile status: {}", log);
+            glDeleteShader(id_);
+        }
+    }
+};
+
+struct program {
+    uint id_{0};
+
+    program() {id_ = glCreateProgram();}
+    ~program() {glDeleteProgram(id_);}
+
+    void attach(const shader& shader) const {glAttachShader(id_, shader.id_);}
+    void detach(const shader& shader) const {glDetachShader(id_, shader.id_);}
+    void use() const {glUseProgram(id_);}
+    void set_umat4f(const std::string& uniform , const glm::mat4& value) const {
+        int loc = glGetUniformLocation(id_, uniform.data());
+        glProgramUniformMatrix4fv(id_, loc, 1, false, glm::value_ptr(value));
     }
 
-    shader_program(const char* cs) {
-        id_ = glCreateProgram();
-        auto c = compile(GL_COMPUTE_SHADER, cs);
-        int success;
-        glGetShaderiv(c, GL_COMPILE_STATUS, &success);
-        assert(success && "compute shader compile error");
+    bool link() const {
         glLinkProgram(id_);
-        glGetProgramiv(id_, GL_LINK_STATUS, &success);
-        assert(success && "shader link error");
-        glDeleteShader(c);
-    }
-    shader_program(const char* vs, const char* fs){
-        id_ = glCreateProgram();
-        int success;
-        auto f = compile(GL_FRAGMENT_SHADER, fs);
-        glGetShaderiv(f, GL_COMPILE_STATUS, &success);
-        assert(success && "fragment shader compile error");
-        auto v = compile(GL_VERTEX_SHADER, vs);
-        glGetShaderiv(v, GL_COMPILE_STATUS, &success);
-        assert(success && "vertex shader compile error");
+        int linked = 0;
+        glGetProgramiv(id_, GL_LINK_STATUS, &linked);
+        if (!linked) {
+            char log[512]; 
+            glGetProgramiv(id_, GL_INFO_LOG_LENGTH, nullptr);
+            glGetProgramInfoLog(id_, sizeof(log), nullptr , log);
+            std::println("link status: {}", log);
 
-        glLinkProgram(id_);
-        glGetProgramiv(id_, GL_LINK_STATUS, &success);
-        assert(success && "shader link error");
-        glDeleteShader(f);
-        glDeleteShader(v);
-
-        view_loc_ = glGetUniformLocation(id_, "view");
-        proj_loc_ = glGetUniformLocation(id_, "proj");
+            glDeleteProgram(id_);
+            return false;
+        }
+        return true;
     }
 };
 
