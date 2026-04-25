@@ -1,11 +1,14 @@
 #include "rendr/context.h"
+
+#include "glm/ext/matrix_clip_space.hpp"
+
 #include "rendr/primitives.h"
 
 namespace rendr {
 
 void create_pipeline(const program& p ) {
-    shader fs = shader("../assets/fragment.glsl", ShaderType::Fragment);
-    shader vs = shader("../assets/vertex.glsl", ShaderType::Vertex);
+    shader fs = shader("assets/fragment.glsl", ShaderType::Fragment);
+    shader vs = shader("assets/vertex.glsl", ShaderType::Vertex);
     p.attach(fs);
     p.attach(vs);
     p.link();
@@ -141,6 +144,5 @@ void context::specify_attributes() {
 //     off[obj.id_] = off[last];
 //     cmd.instance_count--;
 // }
-
 
 }  // namespace rendD

@@ -3,7 +3,10 @@
 #include <functional>
 #include <string_view>
 
+#include "glad/gl.h"
+
 #include "GLFW/glfw3.h"
+
 #include "glm/ext/vector_float2.hpp"
 
 #include "rendr/types.h"

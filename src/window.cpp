@@ -1,4 +1,5 @@
 #include "glad/gl.h"
+
 #include "rendr/window.h"
 
 namespace rendr {

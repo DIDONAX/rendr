@@ -1,11 +1,10 @@
 #pragma once
 
-#include "rendr/glw.h"
+#include "rendr/gl/vertex_array.h"
+#include "rendr/gl/mapped_buffer.h"
 #include "rendr/constants.h"
 
 namespace rendr {
-
-using namespace glw;
 
 struct geometry {
     std::vector<position_t> vertices_;

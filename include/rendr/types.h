@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glad/gl.h"
 #include "glm/ext/matrix_float4x4.hpp"
 
 namespace rendr {
@@ -14,5 +15,7 @@ using rotation_t = glm::mat4;
 using scale_t = glm::mat4;
 using normal_t = glm::vec3;
 using index_t = uint;
+
+using uint = GLuint;
 
 } // namespace rendr

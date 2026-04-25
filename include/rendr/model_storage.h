@@ -1,11 +1,9 @@
 #pragma once
 
-#include "rendr/glw.h"
 #include "rendr/constants.h"
+#include "rendr/gl/mapped_buffer.h"
 
 namespace rendr {
-
-using namespace glw;
 
 struct model_storage {
     // per mesh
