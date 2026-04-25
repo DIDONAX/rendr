@@ -1,4 +1,5 @@
 #include "rendr/system.h"
+#include "rendr/glw.h"
 #include "rendr/primitives.h"
 #include "rendr/types.h"
 
@@ -7,8 +8,19 @@ namespace rendr {
 
 constexpr auto map_flags = Flags::Write | Flags::Persistent | Flags::Coherent;
 
+void create_pipeline(const program& p ) {
+    shader fs = shader("../assets/fragment.glsl", ShaderType::Fragment);
+    shader vs = shader("../assets/vertex.glsl", ShaderType::Vertex);
+    p.attach(fs);
+    p.attach(vs);
+    p.link();
+    p.detach(fs);
+    p.detach(vs);
+}
+
 system::system() {
-    raster_program_ = new shader_program(vertex_shader, fragment_shader);
+    program_ = new program();
+    create_pipeline(*program_);
     meshes_ = new mesh_storage{};
     models_ = new model_storage{};
     mdi_ = new shader_storage{};
@@ -20,7 +32,7 @@ system::system() {
 };
 
 system::~system() {
-    delete raster_program_;
+    delete program_;
     delete meshes_;
     delete models_;
     delete mdi_;
@@ -79,7 +91,7 @@ object system::add_instance(const mesh_id id, const glm::vec3& off, const color_
 }
 
 void system::update_camera(const camera& cam) {
-    raster_program_->update_view(compute_view(cam));
+    program_->set_umat4f("view", compute_view(cam));
 }
 
 void system::load_geom() {
@@ -131,9 +143,9 @@ void system::update_global_offs(const std::vector<offset_t>& offsets) const {
 } 
 
 void system::set_initial_state() {
-    raster_program_->use();
+    program_->use();
     auto proj = glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f);
-    raster_program_->update_proj(proj);
+    program_->set_umat4f("proj", proj);
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);
     glBindVertexArray(meshes_->attributes_.id_);

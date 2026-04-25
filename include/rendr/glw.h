@@ -2,8 +2,12 @@
 
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
+#include "rendr/utils.h"
 #include <cassert>
 #include <cstddef>
+#include <print>
+#include <string>
+#include <filesystem>
 
 namespace rendr::glw {
 
@@ -16,6 +20,13 @@ enum Flags {
     Write = GL_MAP_WRITE_BIT,
     Persistent = GL_MAP_PERSISTENT_BIT,
     Coherent = GL_MAP_COHERENT_BIT,
+};
+
+enum ShaderType {
+    Vertex = GL_VERTEX_SHADER,
+    Fragment = GL_FRAGMENT_SHADER,
+    Geometry = GL_GEOMETRY_SHADER,
+    Compute = GL_COMPUTE_SHADER
 };
 
 struct shader_storage {
@@ -79,57 +90,58 @@ struct vertex_array {
 
 };
 
-// this is too coupled, needs rewrite
-struct shader_program {
+struct shader {
     uint id_{0};
-    int view_loc_{-1};
-    int proj_loc_{-1};
 
-    void update_view(const glm::mat4& mat4f) {
-        glUniformMatrix4fv(view_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
-    }
-    void update_proj(const glm::mat4& mat4f) {
-        glUniformMatrix4fv(proj_loc_, 1, GL_FALSE, glm::value_ptr(mat4f));
-    }
-    void use() {glUseProgram(id_);}
+    ~shader() {glDeleteShader(id_);} 
 
-    uint compile(auto type, const char* src) {
-        uint s = glCreateShader(type);
-        glShaderSource(s, 1, &src, nullptr);
-        glCompileShader(s);
-        glAttachShader(id_, s);
-        return s;
+    shader(std::filesystem::path path, const ShaderType& type) {
+        id_ = glCreateShader(static_cast<GLenum>(type));
+        auto src = load_file(path);
+        auto ptr = src.data();
+        glShaderSource(id_, 1, &ptr, nullptr);
+        glCompileShader(id_);
+
+        int compiled = 0;
+        glGetShaderiv(id_, GL_COMPILE_STATUS, &compiled);
+        if (!compiled) {
+            char log[512]; 
+            glGetShaderiv(id_, GL_INFO_LOG_LENGTH, nullptr);
+            glGetShaderInfoLog(id_, sizeof(log), nullptr , log);
+            std::println("compile status: {}", log);
+            glDeleteShader(id_);
+        }
+    }
+};
+
+struct program {
+    uint id_{0};
+
+    program() {id_ = glCreateProgram();}
+    ~program() {glDeleteProgram(id_);}
+
+    void attach(const shader& shader) const {glAttachShader(id_, shader.id_);}
+    void detach(const shader& shader) const {glDetachShader(id_, shader.id_);}
+    void use() const {glUseProgram(id_);}
+    void set_umat4f(const std::string& uniform , const glm::mat4& value) const {
+        int loc = glGetUniformLocation(id_, uniform.data());
+        glProgramUniformMatrix4fv(id_, loc, 1, false, glm::value_ptr(value));
     }
 
-    shader_program(const char* cs) {
-        id_ = glCreateProgram();
-        auto c = compile(GL_COMPUTE_SHADER, cs);
-        int success;
-        glGetShaderiv(c, GL_COMPILE_STATUS, &success);
-        assert(success && "compute shader compile error");
+    bool link() const {
         glLinkProgram(id_);
-        glGetProgramiv(id_, GL_LINK_STATUS, &success);
-        assert(success && "shader link error");
-        glDeleteShader(c);
-    }
-    shader_program(const char* vs, const char* fs){
-        id_ = glCreateProgram();
-        int success;
-        auto f = compile(GL_FRAGMENT_SHADER, fs);
-        glGetShaderiv(f, GL_COMPILE_STATUS, &success);
-        assert(success && "fragment shader compile error");
-        auto v = compile(GL_VERTEX_SHADER, vs);
-        glGetShaderiv(v, GL_COMPILE_STATUS, &success);
-        assert(success && "vertex shader compile error");
+        int linked = 0;
+        glGetProgramiv(id_, GL_LINK_STATUS, &linked);
+        if (!linked) {
+            char log[512]; 
+            glGetProgramiv(id_, GL_INFO_LOG_LENGTH, nullptr);
+            glGetProgramInfoLog(id_, sizeof(log), nullptr , log);
+            std::println("link status: {}", log);
 
-        glLinkProgram(id_);
-        glGetProgramiv(id_, GL_LINK_STATUS, &success);
-        assert(success && "shader link error");
-        glDeleteShader(f);
-        glDeleteShader(v);
-
-        view_loc_ = glGetUniformLocation(id_, "view");
-        proj_loc_ = glGetUniformLocation(id_, "proj");
+            glDeleteProgram(id_);
+            return false;
+        }
+        return true;
     }
 };
 

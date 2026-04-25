@@ -2,7 +2,6 @@
 
 #include "rendr/mesh_storage.h"
 #include "rendr/model_storage.h"
-#include "rendr/shader_source.h"
 #include "rendr/draw_command.h"
 #include "rendr/types.h"
 #include "rendr/camera.h"
@@ -24,7 +23,7 @@ struct object_desc {
 
 // TODO: SDP vs noSDP possible 2x
 struct system {
-    shader_program* raster_program_;
+    program* program_;
     mesh_storage* meshes_;
     model_storage* models_;
     shader_storage* mdi_;
