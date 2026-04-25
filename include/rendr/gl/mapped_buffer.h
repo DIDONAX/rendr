@@ -1,6 +1,7 @@
 #pragma once 
 
 #include <cstddef>
+#include <iomanip>
 #include <stdexcept>
 #include <vector>
 
@@ -29,6 +30,11 @@ class mapped_buffer {
             if (id_== 0) return; 
             glUnmapNamedBuffer(id_);
             glDeleteBuffers(1, &id_);
+        }
+
+        T& operator[](const std::size_t idx) {
+            assert(idx < size_ && "index out of range");
+            return data_[idx];
         }
 
         mapped_buffer(const mapped_buffer&) = delete;

@@ -26,7 +26,7 @@ context::context() {
 
 context::~context() {};
 
-void context::wireframe(const bool b) {
+void context::wireframe(const bool b) const {
     glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
 }
 
@@ -48,17 +48,17 @@ mesh_id context::add_mesh(const geometry& geom) {
 }
 
 // TODO: add explicit fencing and triple ring buffer
-void context::draw() {
+void context::draw() const {
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, mdi_.size(), 0);
 };
 
-instance_id context::add_instance(const mesh_id id, const model_matrix& mat, const color_t color) const {
-    auto& cmd = mdi_.data()[id];
-    auto idx = id * kInstanceCapacity+ cmd.instance_count;
-    models_.offsets_.data()[idx] = mat.offset_;
-    models_.rotations_.data()[idx] = mat.rotation_;
-    models_.scales_.data()[idx] = mat.scale_;
-    models_.colors_.data()[idx] = color;
+instance_id context::add_instance(const mesh_id id, const model_matrix& mat, const color_t color) {
+    auto& cmd = mdi_[id];
+    auto idx = id * kInstanceCapacity + cmd.instance_count;
+    models_.offsets_[idx] = mat.offset_;
+    models_.rotations_[idx] = mat.rotation_;
+    models_.scales_[idx] = mat.scale_;
+    models_.colors_[idx] = color;
     cmd.instance_count++;
     return idx;
 }
@@ -79,15 +79,15 @@ void context::load_geom() {
     add_mesh(load_cube());
 }
 
-void context::update_offsets(const mesh_id id, const std::vector<offset_t>& offsets) const {
+void context::update_offsets(const mesh_id id, const std::vector<offset_t>& offsets) {
     update_buffer(id, models_.offsets_, offsets);
 }
 
-void context::update_rotations(const mesh_id id, const std::vector<rotation_t>& rotations) const {
+void context::update_rotations(const mesh_id id, const std::vector<rotation_t>& rotations) {
     update_buffer(id, models_.rotations_, rotations);
 }
 
-void context::update_colors(const mesh_id id, const std::vector<color_t>& colors) const {
+void context::update_colors(const mesh_id id, const std::vector<color_t>& colors) {
     update_buffer(id, models_.rotations_, colors);
 }
 
@@ -99,13 +99,6 @@ void context::set_initial_state() {
     glBindVertexArray(meshes_.attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_.id());
     update_camera({});
-}
-
-void context::set_attr(const object& obj, const object_desc& desc) {
-    models_.offsets_.data()[obj.id_] = {desc.position_, 1};
-    models_.colors_.data()[obj.id_] = desc.color_;
-    auto s = desc.uniform_scale_;
-    models_.scales_.data()[obj.id_] = glm::scale(glm::mat4{1}, {s,s,s});
 }
 
 void context::set_bindings() {
