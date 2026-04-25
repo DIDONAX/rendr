@@ -4,8 +4,8 @@
 namespace rendr {
 
 constexpr mesh_id triangle = 0;
-constexpr mesh_id cube = 1;
-constexpr mesh_id quad = 2;
+constexpr mesh_id quad = 1;
+constexpr mesh_id cube = 2;
 
 geometry load_triangle();
 geometry load_quad();

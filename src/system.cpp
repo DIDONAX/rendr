@@ -88,8 +88,8 @@ void system::update_camera(const camera& cam) {
 
 void system::load_geom() {
     add_mesh(load_triangle());
-    add_mesh(load_cube());
     add_mesh(load_quad());
+    add_mesh(load_cube());
 }
 
 void system::update_rotations(const mesh_id id, const std::vector<rotation_t>& rots) const {
