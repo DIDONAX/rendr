@@ -51,7 +51,6 @@ int main() {
     auto mesh_id = ctx.add_mesh(geom);
     ctx.add_instance(mesh_id, {});
 
-
     float curr_frame{0};
     camera cam;
     while (win.is_open()) {
