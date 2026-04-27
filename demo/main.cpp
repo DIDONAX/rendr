@@ -42,7 +42,7 @@ void compute_fps(float curr_frame) {
 int main() {
     window win({
         .bg = Black,
-        .title = "Stress Test: Streaming 1M color and offset instances" 
+        .title = "Import Test" 
     });
 
     rendr::context ctx;
