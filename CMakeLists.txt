@@ -26,4 +26,4 @@ target_link_libraries(rendr PUBLIC
 add_executable(demo demo/main.cpp)
 target_link_libraries(demo PUBLIC rendr)
 
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
