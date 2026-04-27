@@ -1,4 +1,5 @@
 #include "rendr/load.h"
+#include "rendr/geometry.h"
 
 #include <fstream>
 
