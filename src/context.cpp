@@ -55,18 +55,19 @@ void context::draw() const {
 instance_id context::add_instance(const mesh_id id, const model_matrix& mat, const color_t color) {
     auto& cmd = mdi_[id];
     auto idx = id * kInstanceCapacity + cmd.instance_count;
-    models_.offsets_[idx] = mat.offset_;
-    models_.rotations_[idx] = mat.rotation_;
-    models_.scales_[idx] = mat.scale_;
-    models_.colors_[idx] = color;
+    auto& m = models_;
+    m.offsets_[idx] = mat.offset_;
+    m.rotations_[idx] = mat.rotation_;
+    m.scales_[idx] = mat.scale_;
+    m.colors_[idx] = color;
     cmd.instance_count++;
     return idx;
 }
 
 void context::update_instance_model(const instance_id id, const model_matrix& mat) {
-    models_.offsets_.data()[id] = mat.offset_;
-    models_.rotations_.data()[id] = mat.rotation_;
-    models_.scales_.data()[id] = mat.scale_;
+    models_.offsets_[id] = mat.offset_;
+    models_.rotations_[id] = mat.rotation_;
+    models_.scales_[id] = mat.scale_;
 }
 
 void context::update_camera(const camera& cam) {
@@ -95,28 +96,23 @@ void context::set_initial_state() {
     program_.use();
     program_.set_umat4f("proj",glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f));
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
     glBindVertexArray(meshes_.attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_.id());
     update_camera({});
 }
 
 void context::set_bindings() {
-    auto& off = models_.offsets_;
-    auto& col = models_.colors_;
-    auto& rot = models_.rotations_;
-    auto& scale = models_.scales_;
-
-    off.binding_loc(0);
-    col.binding_loc(1);
-    rot.binding_loc(2);
-    scale.binding_loc(3);
+    const auto& m = models_;
+    m.offsets_.binding_loc(0);
+    m.colors_.binding_loc(1);
+    m.rotations_.binding_loc(2);
+    m.scales_.binding_loc(3);
 }
 
 void context::specify_attributes() {
-    auto& attr = meshes_.attributes_;
-    attr.set_vertex_buff(meshes_.vertices_, 0, sizeof(position_t));
-    attr.set_element_buff(meshes_.indices_);
+    auto& a = meshes_.attributes_;
+    a.set_vertex_buff(meshes_.vertices_, 0, sizeof(position_t));
+    a.set_element_buff(meshes_.indices_);
 
     vertex_array::attribute geom = {
         .location_ = 0,
@@ -124,7 +120,7 @@ void context::specify_attributes() {
         .stride_ = 0
     };
 
-    attr.set(geom);
+    a.set(geom);
 }
 
 // TODO: track added objs if remove is enabled, find obj with id = last and set id = obj.id_;
