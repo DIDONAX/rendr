@@ -23,4 +23,4 @@ FetchContent_MakeAvailable(glfw glad glm)
 
 glad_add_library(glad_lib STATIC REPRODUCIBLE LOADER API gl:core=4.6)
 
-file(COPY ${CMAKE_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${CMAKE_BINARY_DIR})
