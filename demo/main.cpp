@@ -18,16 +18,6 @@ void rotate_cam(camera& c, float r, float t, const vec3 origin) {
     c.position_.z = r * std::sin(theta) + origin.z;
 }
 
-void spawn_instance(rendr::context& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
-    static std::mt19937 gen(std::random_device{}());
-    static std::uniform_real_distribution<float> dist(-600.0f, 600.0f);
-    model_matrix mat;
-    mat.offset_ = {dist(gen), dist(gen), dist(gen), 1};
-    s.add_instance(cube, mat, Red);
-    offs.push_back(mat.offset_);
-    cols.push_back(Red);
-}
-
 void compute_fps(float curr_frame) {
     static float fps_timer{0}, delta{0}, last_frame{0};
     delta = curr_frame - last_frame;
@@ -42,14 +32,14 @@ void compute_fps(float curr_frame) {
 int main() {
     window win({
         .bg = Black,
-        .title = "Import Test" 
+        .title = "Import Test"
     });
 
     rendr::context ctx;
 
-    auto geom = load_obj("../demo/teapot.obj");
+    auto geom = load_obj("../demo/.obj");
     auto mesh_id = ctx.add_mesh(geom);
-    ctx.add_instance(mesh_id, {});
+    ctx.add_instance(mesh_id);
 
     float curr_frame{0};
     camera cam;

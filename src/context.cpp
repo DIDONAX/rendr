@@ -2,6 +2,7 @@
 
 #include "glm/ext/matrix_clip_space.hpp"
 
+#include "rendr/gl/bind.h"
 #include "rendr/primitives.h"
 
 namespace rendr {
@@ -32,19 +33,24 @@ void context::wireframe(const bool b) const {
 
 void context::clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
 
-// TODO: change when allocation logic is changed
 mesh_id context::add_mesh(const geometry& geom) {
-    auto idx = mdi_.size();
+    auto id = mdi_.size();
+
+    auto base_instance{0};
+    if (id != 0) {
+        base_instance = mdi_[id-1].instance_count + mdi_[id-1].base_instance_;
+    }
+
     mdi_.push_back({ 
         .count_ = static_cast<uint>(geom.indices_.size()),
         .instance_count = 0,
         .first_index_ = static_cast<uint>(meshes_.indices_.size()), 
         .base_vertex_ = static_cast<int>(meshes_.vertices_.size()),
-        // assumes same slot size per mesh type
-        .base_instance_ = static_cast<uint>(idx*kInstanceCapacity), 
+        .base_instance_ = static_cast<uint>(base_instance)
     });
     meshes_.add(geom);
-    return idx;
+    sync();
+    return id;
 }
 
 // TODO: add explicit fencing and triple ring buffer
@@ -54,13 +60,15 @@ void context::draw() const {
 
 instance_id context::add_instance(const mesh_id id, const model_matrix& mat, const color_t color) {
     auto& cmd = mdi_[id];
-    auto idx = id * kInstanceCapacity + cmd.instance_count;
+    auto idx = cmd.base_instance_ + cmd.instance_count;
     auto& m = models_;
+
     m.offsets_[idx] = mat.offset_;
     m.rotations_[idx] = mat.rotation_;
     m.scales_[idx] = mat.scale_;
     m.colors_[idx] = color;
     cmd.instance_count++;
+    sync();
     return idx;
 }
 
@@ -76,8 +84,8 @@ void context::update_camera(const camera& cam) {
 
 void context::load_geom() {
     add_mesh(load_triangle());
-    add_mesh(load_quad());
-    add_mesh(load_cube());
+    // add_mesh(load_quad());
+    // add_mesh(load_cube());
 }
 
 void context::update_offsets(const mesh_id id, const std::vector<offset_t>& offsets) {
@@ -96,17 +104,23 @@ void context::set_initial_state() {
     program_.use();
     program_.set_umat4f("proj",glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f));
     glEnable(GL_DEPTH_TEST);
+    update_camera({});
+    sync();
+}
+
+void context::sync() {
+    set_bindings();
+    specify_attributes();
     glBindVertexArray(meshes_.attributes_.id_);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_.id());
-    update_camera({});
 }
 
 void context::set_bindings() {
     const auto& m = models_;
-    m.offsets_.binding_loc(0);
-    m.colors_.binding_loc(1);
-    m.rotations_.binding_loc(2);
-    m.scales_.binding_loc(3);
+    bind(m.offsets_.id(), 0);
+    bind(m.colors_.id(), 1);
+    bind(m.rotations_.id(), 2);
+    bind(m.scales_.id(), 3);
 }
 
 void context::specify_attributes() {

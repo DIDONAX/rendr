@@ -1,8 +1,10 @@
 #pragma once
 
 #include "rendr/gl/vertex_array.h"
-#include "rendr/gl/mapped_buffer.h"
+#include "rendr/gl/mmbuffer.h"
 #include "rendr/constants.h"
+
+#include <print>
 
 namespace rendr {
 
@@ -13,12 +15,21 @@ struct geometry {
 
 struct mesh_storage {
     vertex_array attributes_;
-    mapped_buffer<kVertexCapacity, position_t> vertices_{nullptr, Flags::Static};
-    mapped_buffer<kIndexCapacity, index_t> indices_{nullptr, Flags::Static};
+    mmbuffer<position_t, WriteO> vertices_{};
+    mmbuffer<index_t, WriteO> indices_{};
 
     void add(const geometry& geom) {
         indices_.insert(geom.indices_);
         vertices_.insert(geom.vertices_);
+    }
+
+    void print() {
+        for (const auto& i : indices_) {
+            std::print("{} |", i);
+        }
+        for (const auto& v : vertices_) {
+            std::print("{},{},{} |", v.x, v.y,v.z);
+        }
     }
 };
 

@@ -16,6 +16,7 @@ using color_t = glm::vec4;
 using rotation_t = glm::mat4;
 using scale_t = glm::mat4;
 
+using flag_t = GLuint;
 using uint = GLuint;
 
 } // namespace rendr

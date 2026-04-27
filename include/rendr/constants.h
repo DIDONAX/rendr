@@ -7,12 +7,8 @@
 
 namespace rendr {
 
-constexpr auto kIndexCapacity = 5000000U;
-constexpr auto kVertexCapacity = 5000000U;
-constexpr auto kMeshCapacity= 7U;
-
-constexpr auto kInstanceCapacity = 1000000U;
-static_assert(kInstanceCapacity < std::numeric_limits<uint>::max());
+constexpr auto kGlobalInstanceCapacity= 10000U;
+static_assert(kGlobalInstanceCapacity < std::numeric_limits<uint>::max());
 
 constexpr color_t White = {1,1,1,1};
 constexpr color_t Red = {1,0,0,1};

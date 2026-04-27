@@ -1,16 +1,15 @@
 #pragma once
 
 #include "rendr/constants.h"
-#include "rendr/gl/mapped_buffer.h"
+#include "rendr/gl/mmbuffer.h"
 
 namespace rendr {
 
 struct model_storage {
-    // per mesh
-    mapped_buffer<kInstanceCapacity*kMeshCapacity, offset_t> offsets_{};
-    mapped_buffer<kInstanceCapacity*kMeshCapacity, color_t> colors_{};
-    mapped_buffer<kInstanceCapacity*kMeshCapacity, rotation_t> rotations_{};
-    mapped_buffer<kInstanceCapacity*kMeshCapacity, scale_t> scales_{};
+    mmbuffer<offset_t, WriteO> offsets_{10};
+    mmbuffer<color_t, WriteO> colors_{10};
+    mmbuffer<rotation_t, WriteO> rotations_{10};
+    mmbuffer<scale_t, WriteO> scales_{10};
 };
 
 } // namespace rendr

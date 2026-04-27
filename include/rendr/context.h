@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendr/gl/mmbuffer.h"
 #include "rendr/gl/program.h"
 #include "rendr/draw_command.h"
 #include "rendr/mesh_storage.h"
@@ -9,11 +10,6 @@
 
 
 namespace rendr {
-
-// keeps ref stable in case of swaping
-// struct object {
-//     instance_id id_;
-// };
 
 struct model_matrix {
     offset_t offset_{0};
@@ -26,8 +22,9 @@ struct context {
 
     program program_;
     mesh_storage meshes_;
-    model_storage models_;
-    mapped_buffer<kMeshCapacity, draw_command> mdi_{nullptr, Static};
+
+    model_storage models_; // TODO: resize after add_instance
+    mmbuffer<draw_command, WriteO> mdi_{}; // TODO: update offsets after add_instance
 
     context();
     ~context();
@@ -38,7 +35,7 @@ struct context {
     void update_camera(const camera&);
     void update_instance_model(const instance_id, const model_matrix&);
 
-    instance_id add_instance(const mesh_id, const model_matrix& model, const color_t = glm::vec4{1});
+    instance_id add_instance(const mesh_id, const model_matrix& model = {}, const color_t = White);
     mesh_id add_mesh(const geometry&);
  
     void draw() const;
@@ -51,6 +48,7 @@ struct context {
         void specify_attributes();
         void upload_geom();
         void load_geom();
+        void sync();
 
         template<typename T, typename Container>
         void update_buffer(const mesh_id id, Container& buffer, const std::vector<T>& data); 
@@ -58,9 +56,9 @@ struct context {
 
 template<typename T, typename Container>
 void context::update_buffer(const mesh_id id, Container& buffer, const std::vector<T>& data) {
-    assert(data.size() <= kInstanceCapacity && "instance capacity reached, resize needed");
-    auto off = id * kInstanceCapacity;
-    host_to_device(reinterpret_cast<T*>(buffer.data()) + off, data);
+    auto cmd = mdi_[id]; 
+    auto off = cmd.base_instance_;;
+    copy(reinterpret_cast<T*>(buffer.data()) + off, data.data(), data.size());
 }
 
 } // namespace rendr

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendr/gl/enums.h"
 #include <vector>
 #include <filesystem>
 #include <cassert>
@@ -13,12 +14,9 @@
 namespace rendr {
 
 template<typename T>
-inline void host_to_device(T* dest, const std::vector<T>& src) {
-    std::memcpy(dest, src.data(), src.size() * sizeof(T));
+inline void copy(T* dest, const T* src, std::size_t size) {
+    std::memcpy(dest, src, size * sizeof(T));
 }
-
-std::string load_file(const std::filesystem::path& path);
-
 
 template<typename T>
 inline T char_to(char*& cursor) {
