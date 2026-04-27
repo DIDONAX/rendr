@@ -5,21 +5,13 @@
 namespace rendr {
 
 window::window(const window_settings& settings) {
-    glfwInit();
+    init(settings);
+}
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-    glf_window = glfwCreateWindow(settings.height , settings.height, settings.title.data(), nullptr, nullptr);
-
-    glfwMakeContextCurrent(glf_window);
-    gladLoaderLoadGL();
-    glfwSwapInterval(settings.vsync);
-    disable_cursor(settings.disable_cursor);
-    glViewport(0, 0, settings.height, settings.height);
-    glClearColor(settings.bg.r, settings.bg.g, settings.bg.b, settings.bg.a);
+window::window(const std::string_view& title) {
+    window_settings settings{};
+    settings.title = title;
+    init(settings);
 }
 
 window::~window() {glfwDestroyWindow(glf_window);}
@@ -62,6 +54,25 @@ void window::get_mouse_pos(double& x, double& y) const {
 
 void window::disable_cursor(bool f) {
     glfwSetInputMode(glf_window, GLFW_CURSOR, f ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+}
+
+void window::init(const window_settings& settings) {
+    glfwInit();
+    settings_ = settings;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+    glf_window = glfwCreateWindow(settings.height , settings.height, settings.title.data(), nullptr, nullptr);
+
+    glfwMakeContextCurrent(glf_window);
+    gladLoaderLoadGL();
+    glfwSwapInterval(settings.vsync);
+    disable_cursor(settings.disable_cursor);
+    glViewport(0, 0, settings.height, settings.height);
+    glClearColor(settings.bg.r, settings.bg.g, settings.bg.b, settings.bg.a);
 }
 
 } // namespace rendr

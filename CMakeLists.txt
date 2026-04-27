@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-file(GLOB rendr_sources src/*.cpp)
+file(GLOB rendr_sources src/*.cpp src/gl/*.cpp)
 
 include(cmake/dependencies.cmake)
 include(cmake/platform.cmake)

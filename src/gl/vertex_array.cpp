@@ -12,14 +12,6 @@ void vertex_array::set(const attribute& attr) {
     glVertexArrayAttribBinding(id_, attr.location_, 0);
 }
 
-void vertex_array::set_element_buff(const auto& ebo) const {
-    glVertexArrayElementBuffer(id_, ebo.id());
-}
-
-void vertex_array::set_vertex_buff(const auto& vbo, const uint bind_loc, const size_t stride) const {
-    glVertexArrayVertexBuffer(id_, bind_loc, vbo.id(), 0, stride);
-}
-
 void vertex_array::enable_attrib(const uint loc) const {
     glEnableVertexArrayAttrib(id_, loc);
 }

@@ -7,9 +7,9 @@
 
 namespace rendr {
 
-constexpr auto kIndexCapacity = 50;
-constexpr auto kVertexCapacity = 15;
-constexpr auto kMeshCapacity= 3;
+constexpr auto kIndexCapacity = 5000000U;
+constexpr auto kVertexCapacity = 5000000U;
+constexpr auto kMeshCapacity= 7U;
 
 constexpr auto kInstanceCapacity = 1000000U;
 static_assert(kInstanceCapacity < std::numeric_limits<uint>::max());

@@ -13,6 +13,7 @@
 
 namespace rendr {
 
+//fixed size for now
 template<std::size_t C, typename T>
 class mapped_buffer {
     public :
@@ -33,7 +34,7 @@ class mapped_buffer {
         }
 
         T& operator[](const std::size_t idx) {
-            assert(idx < size_ && "index out of range");
+            assert(idx < C && "index out of range");
             return data_[idx];
         }
 

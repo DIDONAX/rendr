@@ -60,7 +60,7 @@ template<typename T, typename Container>
 void context::update_buffer(const mesh_id id, Container& buffer, const std::vector<T>& data) {
     assert(data.size() <= kInstanceCapacity && "instance capacity reached, resize needed");
     auto off = id * kInstanceCapacity;
-    host_to_device(buffer.data() + off, data);
+    host_to_device(reinterpret_cast<T*>(buffer.data()) + off, data);
 }
 
 } // namespace rendr

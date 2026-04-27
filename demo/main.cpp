@@ -1,17 +1,22 @@
+#include "glm/geometric.hpp"
 #include "rendr/context.h"
+#include "rendr/mesh_storage.h"
 #include "rendr/primitives.h"
 #include "rendr/camera.h"
+#include "rendr/load.h"
 #include "rendr/constants.h"
 #include "rendr/window.h"
+#include <cstddef>
 #include <print>
 #include <random>
 #include <vector>
 
 using namespace rendr;
-void rotate_cam(camera& c, float r, float t) {
+void rotate_cam(camera& c, float r, float t, const vec3 origin) {
     auto theta  = c.speed_ * t;
-    c.position_.x = r * std::cos(theta); 
-    c.position_.z = r * std::sin(theta);
+    c.position_.x = r * std::cos(theta) + origin.x;
+    c.position_.z = r * std::sin(theta) + origin.z;
+    c.target_ = origin;
 }
 
 void spawn_instance(rendr::context& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
@@ -36,31 +41,30 @@ void compute_fps(float curr_frame) {
 }
 
 int main() {
-    camera cam;
-    cam.speed_/=3;
-    window_settings set;
-    set.title = "Stress Test: Streaming 1M color and offset instances";
+    window win({
+        .bg = Black,
+        .title = "Stress Test: Streaming 1M color and offset instances" 
+    });
 
-    window win{set};
-    rendr::context s;
+    rendr::context ctx;
+
+    auto geom = load_obj("../demo/teapot.obj");
+    auto mesh_id = ctx.add_mesh(geom);
+    ctx.add_instance(mesh_id, {});
+
 
     float curr_frame{0};
-    std::vector<offset_t> offs;
-    std::vector<color_t> cols;
-
-    for (int i = 0; i < kInstanceCapacity; ++i) spawn_instance(s, offs, cols);
+    camera cam;
     while (win.is_open()) {
         win.poll_event();
         curr_frame = glfwGetTime();
         compute_fps(curr_frame);
 
-        rotate_cam(cam, 1300, curr_frame);
-        s.update_offsets(1, offs);
-        s.update_colors(1, cols);
-        s.update_camera(cam);
+        rotate_cam(cam, 8, curr_frame, cam.target_);
+        ctx.update_camera(cam);
 
-        s.clear();
-        s.draw();
+        ctx.clear();
+        ctx.draw();
         win.display();
     }
 }

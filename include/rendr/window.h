@@ -35,19 +35,20 @@ enum Mouse {
     Right = GLFW_MOUSE_BUTTON_RIGHT
 };
 
-
 struct window_settings {
     int height{1000};
     bool vsync{false};
     bool disable_cursor{false};
-    color_t bg{1,1,1,1};
-    std::string_view title{"Default"};
+    color_t bg{1};
+    std::string_view title{""};
 };
 
 class window {
     public:
+        window_settings settings_{};
         ~window();
         window(const window_settings& settings = {});
+        window(const std::string_view& title);
 
         bool is_open() const;
         void display() const;
@@ -66,12 +67,12 @@ class window {
                 auto* f = static_cast<std::function<void(double, double)>*>(glfwGetWindowUserPointer(window));
                 (*f)(x, y);
             });
-        } 
+        }
     private:
         GLFWwindow* glf_window;
         glm::vec2 mouse_last_{0, 0};
         bool mouse_first_{true};
-        window_settings settings_{};
+        void init(const window_settings& setting);
 };
 
 } // namespace rendr
