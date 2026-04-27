@@ -16,7 +16,6 @@ void rotate_cam(camera& c, float r, float t, const vec3 origin) {
     auto theta  = c.speed_ * t;
     c.position_.x = r * std::cos(theta) + origin.x;
     c.position_.z = r * std::sin(theta) + origin.z;
-    c.target_ = origin;
 }
 
 void spawn_instance(rendr::context& s, std::vector<offset_t>& offs, std::vector<color_t>& cols) {
