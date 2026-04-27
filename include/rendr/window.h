@@ -11,7 +11,6 @@
 
 #include "rendr/types.h"
 
-
 namespace rendr {
 
 enum State {

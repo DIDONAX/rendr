@@ -105,6 +105,7 @@ void context::set_initial_state() {
     program_.use();
     program_.set_umat4f("proj",glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f));
     glEnable(GL_DEPTH_TEST);
+    // glEnable(GL_CULL_FACE);  
     // glEnable(GL_BLEND);
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     update_camera({});

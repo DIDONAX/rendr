@@ -29,8 +29,6 @@ geometry load_obj(const std::filesystem::path& path) {
                 char_to<index_t>(cursor)-1,
                 char_to<index_t>(cursor)-1,
             });
-        } else if (*cursor == '/') {
-            throw std::runtime_error("/ format not supported yet");
         } else {
             cursor++;
         }

@@ -22,11 +22,18 @@ template<typename T>
 inline T char_to(char*& cursor) {
     T n;
     auto start = cursor;
-    while (*cursor != ' ' && *cursor != '\n' && *cursor != '\0') ++cursor;
-    std::from_chars(start, cursor, n);
+    char* slash;
+    while (*cursor != ' ' && *cursor != '\n' && *cursor != '\0'){
+        ++cursor;
+        if (*cursor == '/') {
+            slash = cursor;
+        }
+    };
+    std::from_chars(start, slash ? slash : cursor, n);
     ++cursor;
     return n;
 }
+
 
 template<typename T>
 inline std::span<T> mmap(const std::filesystem::path& path) {

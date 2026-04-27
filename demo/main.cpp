@@ -1,15 +1,5 @@
-#include "glm/geometric.hpp"
 #include "rendr/context.h"
-#include "rendr/mesh_storage.h"
-#include "rendr/primitives.h"
-#include "rendr/camera.h"
-#include "rendr/load.h"
-#include "rendr/constants.h"
 #include "rendr/window.h"
-#include <cstddef>
-#include <print>
-#include <random>
-#include <vector>
 
 using namespace rendr;
 void rotate_cam(camera& c, float r, float t, const vec3 origin) {
@@ -45,7 +35,7 @@ int main() {
 
     rendr::context ctx;
 
-    auto geom = load_obj("../demo/robot.obj");
+    auto geom = load_obj("assets/robot.obj");
     auto mesh_id = ctx.add_mesh(geom);
     ctx.add_instance(mesh_id);
 
