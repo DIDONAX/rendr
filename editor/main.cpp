@@ -8,8 +8,8 @@ int main() {
     editor e;
     auto ctx = e.ctx();
 
-    auto geom =load_obj("assets/teapot.obj");
-    auto bb  = compute_bbox(geom);
+    auto geom = load_obj("assets/teapot.obj");
+    auto bb = compute_bbox(geom);
     auto mesh_id = ctx->add_mesh(geom);
     ctx->add_instance(mesh_id);
 
@@ -17,10 +17,8 @@ int main() {
     e.default_camera().position_.y += 5.f;
 
     while (e.running()) {
-        // do stuff with opengl context
+        // do stuff with opengl context / scene
 
-        ctx->clear();
-        ctx->draw();
         e.display();
     }
 }

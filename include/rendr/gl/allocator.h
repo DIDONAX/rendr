@@ -8,7 +8,6 @@ constexpr flag_t kBaseFlags = Persistent | Coherent;
 template<typename T, Protection P>
 struct allocation {
     uint id_{0};
-    Protection prot_{P};
     size_t size_{1};
     T* data_{nullptr};
 };

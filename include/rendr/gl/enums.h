@@ -28,7 +28,12 @@ enum ShaderType {
 };
 
 enum BufferType {
-    Storage = GL_SHADER_STORAGE_BUFFER
+    Array = GL_ARRAY_BUFFER,
+    Index = GL_ELEMENT_ARRAY_BUFFER,
+    Uniform = GL_UNIFORM_BUFFER,
+    Texture = GL_TEXTURE_BUFFER,
+    Storage = GL_SHADER_STORAGE_BUFFER,
+    IndirectDraw = GL_DRAW_INDIRECT_BUFFER,
 };
 
 }

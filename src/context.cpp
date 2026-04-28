@@ -130,16 +130,16 @@ void context::set_initial_state() {
 void context::sync() {
     set_bindings();
     specify_attributes();
-    glBindVertexArray(meshes_.attributes_.id_);
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, mdi_.id());
+    bind<Array>(meshes_.attributes_.id_);
+    bind<IndirectDraw>(mdi_.id());
 }
 
 void context::set_bindings() {
     const auto& m = models_;
-    bind(m.offsets_.id(), 0);
-    bind(m.colors_.id(), 1);
-    bind(m.rotations_.id(), 2);
-    bind(m.scales_.id(), 3);
+    bind<Storage, 0>(m.offsets_.id());
+    bind<Storage, 1>(m.colors_.id());
+    bind<Storage, 2>(m.rotations_.id());
+    bind<Storage, 3>(m.scales_.id());
 }
 
 void context::specify_attributes() {

@@ -23,7 +23,7 @@ struct context {
     program program_;
     mesh_storage meshes_;
 
-    model_storage models_; // TODO: resize after add_instance
+    model_storage models_; // TODO: resize after add_instance / arena allocator > per insance grow factor ?
     mmbuffer<draw_command, WriteO> mdi_{}; // TODO: update offsets after add_instance
 
     context();

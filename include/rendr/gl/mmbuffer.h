@@ -28,8 +28,8 @@ class mmbuffer {
             allocation_ = allocator_.allocate(allocation_.size_);
         }
         mmbuffer(const std::size_t n ) {
-            allocation_ = allocator_.allocate(n);
             assert(n != 0 && "capacity cant be 0");
+            allocation_ = allocator_.allocate(n);
         }
         ~mmbuffer() {
             allocator_.deallocate(allocation_);

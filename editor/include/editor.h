@@ -25,21 +25,35 @@ class editor {
         rendr::camera camera_;
 };
 
-inline void init_imgui(const window& w) {
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.FontGlobalScale = 1.7f;
-    ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(w.instance(), true);
-    ImGui_ImplOpenGL3_Init("#version 460");
+namespace imgui {
+    inline void init(const window& w) {
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.FontGlobalScale = 1.7f;
+        ImGui::StyleColorsDark();
+        ImGui_ImplGlfw_InitForOpenGL(w.instance(), true);
+        ImGui_ImplOpenGL3_Init("#version 460");
+    }
+
+    inline void destroy() {
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
+
+    inline void begin_frame() {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+    }
+
+    inline void end_frame() {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    }
 }
 
-inline void destroy_imgui() {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
 
 }
