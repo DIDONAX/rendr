@@ -51,6 +51,7 @@ class window {
 
         bool is_open() const;
         void display() const;
+        GLFWwindow* instance() const;
         void poll_event() const;
         State key(const Key& k) const;
         State mouse(const Mouse& m) const;

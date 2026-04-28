@@ -56,6 +56,8 @@ void window::disable_cursor(bool f) {
     glfwSetInputMode(glf_window, GLFW_CURSOR, f ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
+GLFWwindow* window::instance() const { return glf_window;}
+
 void window::init(const window_settings& settings) {
     glfwInit();
     settings_ = settings;

@@ -31,8 +31,4 @@ enum BufferType {
     Storage = GL_SHADER_STORAGE_BUFFER
 };
 
-inline bool includes(Flags storage, Flags map) {
-    return map & storage;
-}
-
 }

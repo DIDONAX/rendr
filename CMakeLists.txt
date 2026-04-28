@@ -23,5 +23,6 @@ target_link_libraries(rendr PUBLIC
 	glm::glm
 )
 
-add_executable(demo demo/main.cpp)
-target_link_libraries(demo PUBLIC rendr)
+if(RENDR_BUILD_EDITOR)
+	add_subdirectory(editor)
+endif()

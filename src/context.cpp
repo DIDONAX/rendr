@@ -81,12 +81,18 @@ void context::update_instance_model(const instance_id id, const model_matrix& ma
 
 void context::update_camera(const camera& cam) {
     program_.set_umat4f("view", compute_view(cam));
+    program_.set_umat4f("proj", glm::perspective(
+        glm::radians(90.F),
+        cam.aspect_,
+        0.1F,
+        1000.F 
+    ));
 }
 
 void context::load_geom() {
     add_mesh(load_triangle());
-    // add_mesh(load_quad());
-    // add_mesh(load_cube());
+    add_mesh(load_quad());
+    add_mesh(load_cube());
 }
 
 void context::update_offsets(const mesh_id id, const std::vector<offset_t>& offsets) {
@@ -103,7 +109,6 @@ void context::update_colors(const mesh_id id, const std::vector<color_t>& colors
 
 void context::set_initial_state() {
     program_.use();
-    program_.set_umat4f("proj",glm::perspective(glm::radians(90.f), 1.f, 0.1f, 10000.f));
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);  
     // glEnable(GL_BLEND);

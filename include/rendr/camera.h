@@ -12,6 +12,7 @@ struct camera {
     vec3 direction_{0,0,-1};
     float speed_{1};
     float sens_{1};
+    float aspect_{1};
 };
 
 inline glm::mat4 compute_view(const camera& c) {
