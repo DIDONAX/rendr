@@ -36,7 +36,14 @@ GLFWwindow* window::instance() const { return glf_window_;}
 void window::init() {
     assert(glfwInit());
 
-    GLFWmonitor* monitor = settings_.mode_ == Fullscreen ? glfwGetPrimaryMonitor() : nullptr;
+    GLFWmonitor* monitor{nullptr};
+
+    if (settings_.mode_ == Fullscreen) {
+        monitor = glfwGetPrimaryMonitor();
+        auto mode = glfwGetVideoMode(monitor);
+        settings_.height_ = mode->height;
+        settings_.width_ = mode->width;
+    }
 
     if (settings_.mode_ == Maximized) {
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);

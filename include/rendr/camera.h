@@ -7,8 +7,8 @@ namespace rendr {
 
 using namespace glm;
 struct camera {
-    vec3 position_{0,0,-1};
-    vec3 target_{};
+    vec3 position_{0, 0,-1};
+    vec3 target_{0};
     vec3 direction_{0,0,-1};
     float speed_{1};
     float sens_{1};
