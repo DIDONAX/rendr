@@ -7,7 +7,6 @@
 #include "rendr/utils.h"
 #include <cstddef>
 #include <cstring>
-#include <iostream>
 #include <string>
 
 namespace rendr {
@@ -100,8 +99,6 @@ class mmbuffer {
             }
             return c;
         }
-
-
 };
 
 }

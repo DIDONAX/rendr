@@ -1,15 +1,8 @@
 #pragma once
 
-#include <functional>
-#include <string_view>
-
-#include "glad/gl.h"
+#include <string>
 
 #include "GLFW/glfw3.h"
-
-#include "glm/ext/vector_float2.hpp"
-
-#include "rendr/types.h"
 
 namespace rendr {
 
@@ -34,45 +27,41 @@ enum Mouse {
     Right = GLFW_MOUSE_BUTTON_RIGHT
 };
 
-struct window_settings {
-    int height{1000};
-    bool vsync{false};
-    bool disable_cursor{false};
-    color_t bg{1};
-    std::string_view title{""};
+enum Mode {
+    Windowed,
+    Maximized,
+    Fullscreen
 };
+
+using fb_size_t = std::pair<int, int>;
+using w_size_t = std::pair<int, int>;
 
 class window {
     public:
-        window_settings settings_{};
+        struct settings {
+            std::string title_{"Default"};
+            int height_{900};
+            int width_{900};
+            bool vsync_{false};
+            Mode mode_{Windowed};
+        };
+
+        window();
+        window(const settings& s);
         ~window();
-        window(const window_settings& settings = {});
-        window(const std::string_view& title);
 
         bool is_open() const;
-        void display() const;
-        GLFWwindow* instance() const;
+        void swap_buffers() const;
         void poll_event() const;
-        State key(const Key& k) const;
-        State mouse(const Mouse& m) const;
-        void disable_cursor(bool flag);
-        void get_mouse_pos(double& x, double& y) const;
-        glm::vec2 mouse_delta();
+        fb_size_t frame_buffer_size() const;
+        w_size_t size() const;
+        GLFWwindow* instance() const;
 
-        template<typename Fn>
-        void scroll_cb(Fn fn) {
-            static std::function<void(double, double)> stored = fn;
-            glfwSetWindowUserPointer(glf_window, &stored);
-            glfwSetScrollCallback(glf_window, [](GLFWwindow* window, double x, double y) {
-                auto* f = static_cast<std::function<void(double, double)>*>(glfwGetWindowUserPointer(window));
-                (*f)(x, y);
-            });
-        }
     private:
-        GLFWwindow* glf_window;
-        glm::vec2 mouse_last_{0, 0};
-        bool mouse_first_{true};
-        void init(const window_settings& setting);
+        GLFWwindow* glf_window_;
+        settings settings_{};
+        void init();
+        void resolve(settings&) const;
 };
 
 } // namespace rendr

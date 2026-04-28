@@ -40,6 +40,8 @@ struct context {
  
     void draw() const;
     void clear() const;
+    void set_viewport(const int x,const int y, const int w, const int h) const;
+    void set_clear_color(const color_t color) const;
     void wireframe(const bool b) const;
 
     private:

@@ -3,7 +3,16 @@
 #include "rendr/context.h"
  
 namespace rendr::editor {
- 
+
+constexpr auto host_flags = ImGuiWindowFlags_NoTitleBar |
+                            ImGuiWindowFlags_NoCollapse |
+                            ImGuiWindowFlags_NoResize |
+                            ImGuiWindowFlags_NoMove |
+                            ImGuiWindowFlags_NoBringToFrontOnFocus |
+                            ImGuiWindowFlags_NoNavFocus |
+                            ImGuiWindowFlags_MenuBar |
+                            ImGuiWindowFlags_NoBackground;
+
 struct editor_state {
     bool show_scene = true;
     bool show_viewport = true;
@@ -20,15 +29,6 @@ inline void begin_dockspace() {
     ImGui::SetNextWindowPos(vp->WorkPos);
     ImGui::SetNextWindowSize(vp->WorkSize);
  
-    ImGuiWindowFlags host_flags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoCollapse |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoBringToFrontOnFocus |
-        ImGuiWindowFlags_NoNavFocus |
-        ImGuiWindowFlags_MenuBar |
-        ImGuiWindowFlags_NoBackground;
  
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
@@ -54,13 +54,10 @@ inline void draw_menu(editor_state& s) {
 
     if (ImGui::BeginMenu("View")) {
         ImGui::MenuItem("Scene", nullptr, &s.show_scene);
-        ImGui::MenuItem("Viewport", nullptr, &s.show_viewport);
         ImGui::MenuItem("Properties", nullptr, &s.show_properties);
-        ImGui::MenuItem("Console", nullptr, &s.show_console);
         ImGui::EndMenu();
     }
  
-    // Right-aligned fps counter
     char fps_buf[32];
     snprintf(fps_buf, sizeof(fps_buf), "%.1f fps", s.fps);
     ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - ImGui::CalcTextSize(fps_buf).x - 8.f);
@@ -89,26 +86,6 @@ inline void draw_scene_panel(editor_state& s, rendr::context&) {
     ImGui::End();
 }
  
-inline void draw_viewport_panel(editor_state& s, GLuint color_tex, ImVec2) {
-    if (!s.show_viewport) return;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    if (!ImGui::Begin("Viewport", &s.show_viewport)) {
-        ImGui::PopStyleVar();
-        ImGui::End();
-        return;
-    }
-    ImGui::PopStyleVar();
- 
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    // Render engine output as texture; pass 0 if not yet set up
-    if (color_tex)
-        ImGui::Image((ImTextureID)(uintptr_t)color_tex, avail, ImVec2(0,1), ImVec2(1,0));
-    else
-        ImGui::TextDisabled("(no render target)");
- 
-    ImGui::End();
-}
- 
 inline void draw_properties_panel(editor_state& s) {
     if (!s.show_properties) return;
     if (!ImGui::Begin("Properties", &s.show_properties)) { ImGui::End(); return; }
@@ -133,27 +110,15 @@ inline void draw_properties_panel(editor_state& s) {
     ImGui::End();
 }
  
-inline void draw_console_panel(editor_state& s) {
-    if (!s.show_console) return;
-    if (!ImGui::Begin("Console", &s.show_console)) { ImGui::End(); return; }
+// editor tick
  
-    // TODO: hook into a log buffer when implemented
-    // ImGui::TextDisabled("[info]  Engine started");
-    // ImGui::TextDisabled("[info]  Mesh loaded: teapot.obj");
- 
-    ImGui::End();
-}
-// ── Full editor tick ──────────────────────────────────────────────────────────
- 
-inline void tick(editor_state& s, rendr::context& ctx, GLuint color_tex = 0) {
+inline void tick(editor_state& s, rendr::context& ctx) {
     begin_dockspace();
     draw_menu(s);
     end_dockspace();
  
     draw_scene_panel(s, ctx);
-    draw_viewport_panel(s, color_tex, {});
     draw_properties_panel(s);
-    draw_console_panel(s);
 }
  
 } // namespace editor

@@ -1,6 +1,5 @@
 #include "rendr/context.h"
 
-#include "glad/gl.h"
 #include "glm/ext/matrix_clip_space.hpp"
 
 #include "rendr/gl/bind.h"
@@ -30,6 +29,14 @@ context::~context() {};
 
 void context::wireframe(const bool b) const {
     glPolygonMode(GL_FRONT_AND_BACK, b ? GL_LINE : GL_FILL);
+}
+
+void context::set_viewport(const int x,const int y, const int w, const int h) const {
+    glViewport(x, y, w, h);
+}
+
+void context::set_clear_color(const color_t color) const {
+    glClearColor(color.r, color.g, color.b, color.a);
 }
 
 void context::clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
@@ -89,6 +96,7 @@ void context::update_camera(const camera& cam) {
     ));
 }
 
+
 void context::load_geom() {
     add_mesh(load_triangle());
     add_mesh(load_quad());
@@ -104,7 +112,7 @@ void context::update_rotations(const mesh_id id, const std::vector<rotation_t>& 
 }
 
 void context::update_colors(const mesh_id id, const std::vector<color_t>& colors) {
-    update_buffer(id, models_.rotations_, colors);
+    update_buffer(id, models_.colors_, colors);
 }
 
 void context::set_initial_state() {
@@ -113,7 +121,9 @@ void context::set_initial_state() {
     // glEnable(GL_CULL_FACE);  
     // glEnable(GL_BLEND);
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    update_camera({});
+    set_clear_color(Black);
+    set_viewport(0, 0, 900, 900);
+    update_camera({.aspect_ = (float)900/(float)900});
     sync();
 }
 

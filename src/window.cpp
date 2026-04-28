@@ -1,80 +1,69 @@
 #include "glad/gl.h"
-
+#include "GLFW/glfw3.h"
 #include "rendr/window.h"
+#include <cassert>
 
 namespace rendr {
 
-window::window(const window_settings& settings) {
-    init(settings);
+window::window(const settings& s) : settings_(s) {
+    init();
 }
 
-window::window(const std::string_view& title) {
-    window_settings settings{};
-    settings.title = title;
-    init(settings);
+window::window() {
+    init();
 }
 
-window::~window() {glfwDestroyWindow(glf_window);}
+window::~window() {glfwDestroyWindow(glf_window_);}
 
-bool window::is_open() const {return!glfwWindowShouldClose(glf_window);}
+bool window::is_open() const {return !glfwWindowShouldClose(glf_window_);}
 
-void window::display() const {glfwSwapBuffers(glf_window);}
+void window::swap_buffers() const {glfwSwapBuffers(glf_window_);}
 
 void window::poll_event() const {glfwPollEvents();}
 
-State window::key(const enum Key& k) const {
-    return static_cast<State>(glfwGetKey(glf_window, k));
+w_size_t window::size() const {
+    return w_size_t(settings_.width_, settings_.height_);
 }
 
-State window::mouse(const Mouse& m) const {
-    return static_cast<State>(glfwGetMouseButton(glf_window, m));
+fb_size_t window::frame_buffer_size() const {
+    fb_size_t size;
+    glfwGetFramebufferSize(glf_window_, &size.first, &size.second);
+    return size;
 }
 
-glm::vec2 window::mouse_delta() {
-    double x, y;
-    glfwGetCursorPos(glf_window, &x, &y);
+GLFWwindow* window::instance() const { return glf_window_;}
 
-    if (mouse_first_) {
-        mouse_last_ = {(float)x, (float)y};
-        mouse_first_ = false;
-        return {0, 0};
+void window::init() {
+    assert(glfwInit());
+
+    GLFWmonitor* monitor = settings_.mode_ == Fullscreen ? glfwGetPrimaryMonitor() : nullptr;
+
+    if (settings_.mode_ == Maximized) {
+        glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     }
-
-    glm::vec2 delta = {
-        ((float)x - mouse_last_.x) / settings_.height,  // already square
-        ((float)y - mouse_last_.y) / settings_.height
-    };
-    mouse_last_ = {(float)x, (float)y};
-    return delta;
-}
-
-void window::get_mouse_pos(double& x, double& y) const {
-    glfwGetCursorPos(glf_window, &x, &y);
-}
-
-void window::disable_cursor(bool f) {
-    glfwSetInputMode(glf_window, GLFW_CURSOR, f ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-}
-
-GLFWwindow* window::instance() const { return glf_window;}
-
-void window::init(const window_settings& settings) {
-    glfwInit();
-    settings_ = settings;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    glf_window = glfwCreateWindow(settings.height , settings.height, settings.title.data(), nullptr, nullptr);
+    glf_window_ = glfwCreateWindow(
+        settings_.width_,
+        settings_.height_,
+        settings_.title_.c_str(),
+        monitor,
+        nullptr
+    );
+    assert(glf_window_);
 
-    glfwMakeContextCurrent(glf_window);
-    gladLoaderLoadGL();
-    glfwSwapInterval(settings.vsync);
-    disable_cursor(settings.disable_cursor);
-    glViewport(0, 0, settings.height, settings.height);
-    glClearColor(settings.bg.r, settings.bg.g, settings.bg.b, settings.bg.a);
+    glfwMakeContextCurrent(glf_window_);
+    assert(gladLoaderLoadGL());
+
+    glfwSwapInterval(settings_.vsync_);
+
+    auto [w, h] = this->size();
+    settings_.width_ = w;
+    settings_.height_ = h;
 }
 
 } // namespace rendr
