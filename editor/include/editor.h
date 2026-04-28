@@ -40,7 +40,6 @@ inline void begin_dockspace() {
 inline void end_dockspace() { ImGui::End(); }
  
 // Menu bar
- 
 inline void draw_menu(editor_state& s) {
     if (!ImGui::BeginMenuBar()) return;
  
