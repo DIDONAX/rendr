@@ -9,15 +9,13 @@ using mesh_id = std::size_t;
 using instance_id = std::size_t;
 
 using position_t = glm::vec3;
-using index_t = uint;
+using index_t = u_int32_t;
 
 using offset_t = glm::vec4;
 using color_t = glm::vec4;
 
-// TODO: switch to quaternion
 using rotation_t = glm::mat4;
 
-// TODO switch to vec3
 using scale_t = glm::mat4;
 
 using flag_t = GLuint;

@@ -10,6 +10,9 @@ struct draw_command {
     uint first_index_;
     int  base_vertex_;
     uint base_instance_; // offset in global per instance data in num el
+
 };
+
+static_assert(sizeof(draw_command) == 20);
 
 } // namespace rendr

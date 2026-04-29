@@ -6,22 +6,22 @@
 
 namespace rendr {
 
-template<BufferType T, const uint L> requires (T == Uniform || T == Storage)
+template<ObjectType T, const uint L> requires (T == UniformBuffer || T == StorageBuffer)
 inline void bind(const uint id) {
     glBindBufferBase(T, L, id);
 }
 
-template<BufferType T> requires (T == Array)
+template<ObjectType T> requires (T == VertexLayout)
 inline void bind(const uint id) {
     glBindVertexArray(id);
 }
 
-template<BufferType T> requires (T != Array && T != Texture)
+template<ObjectType T> requires (T == VertexBuffer || T == IndexBuffer || T == IndirectBuffer)
 inline void bind(const uint id) {
     glBindBuffer(T, id);
 }
 
-template<BufferType T> requires (T == Texture)
+template<ObjectType T> requires (T == TextureBuffer)
 inline void bind(const uint id, const GLenum internal_format, const uint buffer_id) {
     glTextureBuffer(id, internal_format, buffer_id);
 }

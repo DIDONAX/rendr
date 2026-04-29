@@ -3,6 +3,7 @@
 #include "glm/ext/matrix_clip_space.hpp"
 
 #include "rendr/gl/bind.h"
+#include "rendr/gl/draw.h"
 #include "rendr/primitives.h"
 
 namespace rendr {
@@ -63,7 +64,7 @@ mesh_id context::add_mesh(const geometry& geom) {
 
 // TODO: add explicit fencing and triple ring buffer
 void context::draw() const {
-    glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, mdi_.size(), 0);
+    multi_draw<Triangle>(0, mdi_.size());
 };
 
 instance_id context::add_instance(const mesh_id id, const model_matrix& mat, const color_t color) {
@@ -130,16 +131,16 @@ void context::set_initial_state() {
 void context::sync() {
     set_bindings();
     specify_attributes();
-    bind<Array>(meshes_.attributes_.id_);
-    bind<IndirectDraw>(mdi_.id());
+    bind<VertexLayout>(meshes_.attributes_.id_);
+    bind<IndirectBuffer>(mdi_.id());
 }
 
 void context::set_bindings() {
     const auto& m = models_;
-    bind<Storage, 0>(m.offsets_.id());
-    bind<Storage, 1>(m.colors_.id());
-    bind<Storage, 2>(m.rotations_.id());
-    bind<Storage, 3>(m.scales_.id());
+    bind<StorageBuffer, 0>(m.offsets_.id());
+    bind<StorageBuffer, 1>(m.colors_.id());
+    bind<StorageBuffer, 2>(m.rotations_.id());
+    bind<StorageBuffer, 3>(m.scales_.id());
 }
 
 void context::specify_attributes() {
@@ -157,14 +158,5 @@ void context::specify_attributes() {
 }
 
 // TODO: track added objs if remove is enabled, find obj with id = last and set id = obj.id_;
-// void context::remove_instance(const object& obj) {
-//     // add checks
-//     auto mesh_id = obj.id_ / models_->capacity_;
-//     auto off = static_cast<offset_t*>(models_->offsets_.data());
-//     auto& cmd = static_cast<draw_command*>(mdi_->data())[mesh_id];
-//     auto last = mesh_id * models_->capacity_ + cmd.instance_count - 1;
-//     off[obj.id_] = off[last];
-//     cmd.instance_count--;
-// }
 
 }  // namespace rendD

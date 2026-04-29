@@ -27,13 +27,14 @@ enum ShaderType {
     Compute = GL_COMPUTE_SHADER
 };
 
-enum BufferType {
-    Array = GL_ARRAY_BUFFER,
-    Index = GL_ELEMENT_ARRAY_BUFFER,
-    Uniform = GL_UNIFORM_BUFFER,
-    Texture = GL_TEXTURE_BUFFER,
-    Storage = GL_SHADER_STORAGE_BUFFER,
-    IndirectDraw = GL_DRAW_INDIRECT_BUFFER,
+enum ObjectType {
+    VertexBuffer = GL_ARRAY_BUFFER,
+    IndexBuffer = GL_ELEMENT_ARRAY_BUFFER,
+    UniformBuffer = GL_UNIFORM_BUFFER,
+    TextureBuffer = GL_TEXTURE_BUFFER,
+    StorageBuffer = GL_SHADER_STORAGE_BUFFER,
+    IndirectBuffer = GL_DRAW_INDIRECT_BUFFER,
+    VertexLayout
 };
 
 }

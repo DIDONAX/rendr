@@ -1,6 +1,5 @@
 #pragma once
 
-#include "rendr/gl/mmbuffer.h"
 #include "rendr/gl/program.h"
 #include "rendr/draw_command.h"
 #include "rendr/mesh_storage.h"
@@ -10,7 +9,6 @@
 
 
 namespace rendr {
-
 struct model_matrix {
     offset_t offset_{0};
     rotation_t rotation_{1};
@@ -24,14 +22,17 @@ struct context {
     mesh_storage meshes_;
 
     model_storage models_; // TODO: resize after add_instance / arena allocator > per insance grow factor ?
-    mmbuffer<draw_command, WriteO> mdi_{}; // TODO: update offsets after add_instance
+    mvector<draw_command> mdi_; // TODO: update offsets after add_instance
 
     context();
     ~context();
 
+    // batch updates
     void update_colors(const mesh_id, const std::vector<color_t>&);
     void update_rotations(const mesh_id, const std::vector<rotation_t>&);
     void update_offsets(const mesh_id, const std::vector<offset_t>&);
+
+    //single instance updates
     void update_camera(const camera&);
     void update_instance_model(const instance_id, const model_matrix&);
 

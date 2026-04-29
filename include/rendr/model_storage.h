@@ -6,10 +6,10 @@
 namespace rendr {
 
 struct model_storage {
-    mmbuffer<offset_t, WriteO> offsets_{10};
-    mmbuffer<color_t, WriteO> colors_{10};
-    mmbuffer<rotation_t, WriteO> rotations_{10};
-    mmbuffer<scale_t, WriteO> scales_{10};
+    mvector<offset_t> offsets_{10};
+    mvector<color_t> colors_{10};
+    mvector<rotation_t> rotations_{10};
+    mvector<scale_t> scales_{10};
 };
 
 } // namespace rendr

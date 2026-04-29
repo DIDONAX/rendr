@@ -10,8 +10,8 @@ namespace rendr {
 
 struct mesh_storage {
     vertex_array attributes_;
-    mmbuffer<position_t, WriteO> vertices_{};
-    mmbuffer<index_t, WriteO> indices_{};
+    mvector<position_t> vertices_{};
+    mvector<index_t> indices_{};
 
     void add(const geometry& geom) {
         indices_.insert(geom.indices_);

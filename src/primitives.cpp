@@ -43,6 +43,4 @@ geometry load_cube() {
     return g;
 }
 
-
-
 } // namespace rendr

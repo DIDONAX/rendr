@@ -3,6 +3,8 @@
 #include "rendr/context.h"
 #include "rendr/window.h"
 
+#include "gui.h"
+
 // example usage of the rendr library, OpenGl context lifecycle and windowing all managed application level, the library operates on the current bound context if provided
 
 namespace rendr {
@@ -16,7 +18,7 @@ editor::editor() {
 
     window_ = new window(s);
     ctx_ = new context();
-    imgui::init(*window_);
+    gui::init(*window_);
 
     auto [width, height] = window_->frame_buffer_size();
     camera_ = {
@@ -25,10 +27,12 @@ editor::editor() {
 
     ctx_->set_viewport(0, 0, width, height);
     ctx_->update_camera(camera_);
+
+    gui::cache_asset_files("assets");
 }
 
 editor::~editor() {
-    imgui::destroy();
+    gui::destroy();
     delete ctx_;
     delete window_;
 }
@@ -45,13 +49,15 @@ bool editor::running() const {
     return window_->is_open();
 }
 
-void editor::display() const {
+void editor::display() {
     ctx_->clear();
     ctx_->draw();
 
-    imgui::begin_frame();
-    //
-    imgui::end_frame();
+    gui::begin_frame();
+    gui::draw_assets(*ctx_, *this); 
+    gui::draw_scene(); 
+    gui::draw_properties(*ctx_); 
+    gui::end_frame();
 
     window_->swap_buffers();
 }

@@ -5,12 +5,8 @@
 #include "rendr/gl/allocator.h"
 #include "rendr/gl/enums.h"
 #include "rendr/utils.h"
-#include <cstddef>
-#include <cstring>
-#include <string>
 
 namespace rendr {
-
 // GLINVALID_OPERATION:
 // - The buffer is already in a mapped state.
 // - Neither MAP_READ_BIT nor MAP_WRITE_BIT is set.
@@ -27,6 +23,7 @@ class mmbuffer {
         mmbuffer() {
             allocation_ = allocator_.allocate(allocation_.size_);
         }
+
         mmbuffer(const std::size_t n ) {
             assert(n != 0 && "capacity cant be 0");
             allocation_ = allocator_.allocate(n);
@@ -53,7 +50,7 @@ class mmbuffer {
         }
 
         const T& operator[](const std::size_t idx) const {
-            assert(idx < size_ && "index out of range");
+            // assert(idx < size_ && "index out of range");
             return allocation_.data_[idx];
         }
 
@@ -100,5 +97,8 @@ class mmbuffer {
             return c;
         }
 };
+
+template<typename T>
+using mvector = mmbuffer<T, WriteO>;
 
 }
