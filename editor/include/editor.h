@@ -21,6 +21,8 @@ class editor {
         window* window_;
         context* ctx_;
         rendr::camera camera_;
+
+        void sync_frame_buffer();
 };
 
 }

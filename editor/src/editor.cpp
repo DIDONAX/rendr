@@ -10,7 +10,7 @@
 namespace rendr {
 
 editor::editor() {
-    rendr::window::settings s = {
+    window::settings s = {
         .title_ = "Editor",
         .vsync_ = false,
         .mode_ = rendr::Maximized
@@ -20,14 +20,7 @@ editor::editor() {
     ctx_ = new context();
     gui::init(*window_);
 
-    auto [width, height] = window_->frame_buffer_size();
-    camera_ = {
-        .aspect_ = static_cast<float>(width)/static_cast<float>(height)
-    };
-
-    ctx_->set_viewport(0, 0, width, height);
-    ctx_->update_camera(camera_);
-
+    sync_frame_buffer();
     gui::cache_asset_files("assets");
 }
 
@@ -35,6 +28,16 @@ editor::~editor() {
     gui::destroy();
     delete ctx_;
     delete window_;
+}
+
+void editor::sync_frame_buffer() {
+    auto [width, height] = window_->frame_buffer_size();
+    camera_ = {
+        .aspect_ = static_cast<float>(width)/static_cast<float>(height)
+    };
+
+    ctx_->set_viewport(0, 0, width, height);
+    ctx_->update_camera(camera_);
 }
 
 camera& editor::default_camera() {
@@ -55,9 +58,10 @@ void editor::display() {
 
     gui::begin_frame();
     gui::draw_assets(*ctx_, *this); 
-    gui::draw_scene(*this); 
-    gui::draw_fps(); 
-    gui::draw_properties(*ctx_); 
+    gui::draw_scene(*this);
+    gui::draw_fps();
+    gui::draw_guizmo(*ctx_);
+    gui::draw_properties(*ctx_);
     gui::end_frame();
 
     window_->swap_buffers();

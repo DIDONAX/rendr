@@ -1,39 +1,39 @@
 #pragma once
 
 #include <filesystem>
+#include <print>
 #include <string>
 
-#include "editor.h"
-#include "glm/ext/quaternion_geometric.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 
 #include "rendr/context.h"
-#include "rendr/geometry.h"
-#include "rendr/gl/mmbuffer.h"
 #include "rendr/load.h"
 #include "rendr/types.h"
 #include "rendr/window.h"
+
+#include "editor.h"
+
 
 namespace rendr::gui {
 
 namespace fs = std::filesystem;
 
-static bool exit = false;
-
-static instance_id selected_instance = 0;
-static mesh_id selected_mesh = 0;
-static std::string selected_file = "";
-
-static std::vector<bounding_box> bbox_;
-static std::vector<fs::path> asset_files_;
-static std::vector<instance_id> instances_;
-static std::vector<mesh_id> meshes_;
-
-static float color[] = {1,0,0,1};
 constexpr auto dir = "assets";
+
+struct editor_state {
+    instance_id selected_instance;
+    mesh_id selected_mesh;
+    std::string selected_file;
+
+    std::vector<bounding_box> bbox_;
+    std::vector<fs::path> asset_files_;
+    std::vector<instance_id> instances_;
+    std::vector<mesh_id> meshes_;
+};
+
+static editor_state state_;
+
 
 inline void init(const window& w) {
     IMGUI_CHECKVERSION();
@@ -52,49 +52,44 @@ inline void destroy() {
     ImGui::DestroyContext();
 }
 
+inline void draw_guizmo(context& ctx) {
+    static auto& ctxm = ctx.models_;
+    auto& q = ctxm.quaternions_[state_.selected_instance];
+
+    ImGui::Begin("Guizmo");
+    ImGui::gizmo3D("##guizmo", q, 200, imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
+    ImGui::End();
+}
+
 inline void draw_properties(context& ctx) {
-    auto& o = ctx.models_.offsets_;
-    auto& c = ctx.models_.colors_;
-    auto& r = ctx.models_.quaternions_;
-    auto& s = ctx.models_.scales_;
+    static auto& ctxm = ctx.models_;
 
     ImGui::SetNextWindowSize(ImVec2(400, 300));
 
     if (ImGui::Begin("Properties")) {
 
-        auto& offset = o[selected_instance];
-        auto& color  = c[selected_instance];
-        auto& quat = r[selected_instance];
-        auto& scale  = s[selected_instance];
-
-        ImGui::Text("Instance: %d", static_cast<int>(selected_instance));
+        ImGui::Text("Instance: %d", static_cast<int>(state_.selected_instance));
         ImGui::Separator();
 
-        ImGui::DragFloat4("Color", &color.x, 0.01f, 0.0f, 1.0f);
+        auto& c = ctxm.colors_[state_.selected_instance];
+        ImGui::ColorEdit3("color", glm::value_ptr(c));
         ImGui::Separator();
 
-        ImGui::DragFloat3("Offset", &offset.x, 0.01f);
+        auto& o = ctxm.offsets_[state_.selected_instance];
+        ImGui::DragFloat3("Offset", &o.x, 0.01f);
         ImGui::Separator();
 
-        ImGui::DragFloat3("Scale", &scale.x, 0.001f);
-        ImGui::Separator();
-
-        ImGui::DragFloat4("Quaternion", &quat.x, 0.1f);
-        ImGui::Separator();
+        auto& s = ctxm.scales_[state_.selected_instance];
+        ImGui::DragFloat3("Scale", &s.x, 0.001f);
     }
 
     ImGui::End();
-}
 
-inline void handle_mouse(editor& e) {
-    ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureMouse) {
-        std::println("delta");
-    }
+
 }
 
 inline void fly_to(editor& e) {
-    auto& bb = bbox_[selected_instance];
+    auto& bb = state_.bbox_[state_.selected_instance];
     auto& cam = e.default_camera();
 
     cam.target_ = bb.center_;
@@ -122,13 +117,12 @@ inline void draw_fps() {
 inline void draw_scene(editor& e) {
     ImGui::SetNextWindowSize(ImVec2(400, 300));
     if (ImGui::Begin("Scene")) {
-        for (const auto& id : instances_) {
-            bool is_selected = (selected_instance == id);
+        for (const auto& id : state_.instances_) {
+            bool is_selected = (state_.selected_instance == id);
             fly_to(e);
-            if (ImGui::Selectable(std::to_string(id).c_str(), is_selected)) selected_instance = id;
+            if (ImGui::Selectable(std::to_string(id).c_str(), is_selected)) state_.selected_instance = id;
         }
     }
-
     ImGui::End();
 }
 
@@ -136,7 +130,7 @@ inline void cache_asset_files(const fs::path& dir) {
     for (const auto& entry : fs::directory_iterator(dir)) {
         const auto& p = entry.path();
         if (p.extension() == ".obj") {
-            asset_files_.push_back(p);
+            state_.asset_files_.push_back(p);
         }
     }
 }
@@ -144,26 +138,27 @@ inline void cache_asset_files(const fs::path& dir) {
 inline void draw_assets(context& ctx, editor& e) {
     ImGui::SetNextWindowSize(ImVec2(400, 300));
     if (ImGui::Begin("Asset Browser")) {
-        if (ImGui::Button("Import") && !selected_file.empty()) {
-            auto geom = load_obj(selected_file);
-            bbox_.push_back(compute_bbox(geom));
+        if (ImGui::Button("Import") && !state_.selected_file.empty()) {
+            auto geom = load_obj(state_.selected_file);
+            state_.bbox_.push_back(compute_bbox(geom));
 
             auto id = ctx.add_mesh(geom);
-            meshes_.push_back(id);
+            state_.meshes_.push_back(id);
 
             id = ctx.add_instance(id);
-            instances_.push_back(id);
+            state_.instances_.push_back(id);
 
             fly_to(e);
         }
 
         ImGui::Separator();
 
-        for (const auto& p : asset_files_) {
-            bool is_selected = (selected_file == p.string());
-            if (ImGui::Selectable(p.filename().string().c_str(), is_selected)) selected_file = p.string();
+        for (const auto& p : state_.asset_files_) {
+            bool is_selected = (state_.selected_file == p.string());
+            if (ImGui::Selectable(p.filename().string().c_str(), is_selected)) state_.selected_file = p.string();
         }
     }
+
     ImGui::End(); 
 }
 

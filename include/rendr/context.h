@@ -9,9 +9,10 @@
 
 
 namespace rendr {
+
 struct model_matrix {
     offset_t offset_{0,0,0,1};
-    quaternion_t quaternions_{0,0,0,1};
+    quaternion_t quaternion_{1,0,0,0};
     scale_t scale_{1};
 };
 

@@ -76,7 +76,7 @@ instance_id context::add_instance(const mesh_id id, const model_matrix& mat, con
     auto& m = models_;
 
     m.offsets_[idx] = mat.offset_;
-    m.quaternions_[idx] = mat.quaternions_;
+    m.quaternions_[idx] = mat.quaternion_;
     m.scales_[idx] = mat.scale_;
     m.colors_[idx] = color;
     cmd.instance_count++;
@@ -86,14 +86,14 @@ instance_id context::add_instance(const mesh_id id, const model_matrix& mat, con
 
 void context::update_instance_model(const instance_id id, const model_matrix& mat) {
     models_.offsets_[id] = mat.offset_;
-    models_.quaternions_[id] = mat.quaternions_;
+    models_.quaternions_[id] = mat.quaternion_;
     models_.scales_[id] = mat.scale_;
 }
 
 void context::update_camera(const camera& cam) {
     program_.set_umat4f("view", compute_view(cam));
     program_.set_umat4f("proj", glm::perspective(
-        glm::radians(90.F),
+        glm::radians(60.F),
         cam.aspect_,
         0.1F,
         1000.F 
