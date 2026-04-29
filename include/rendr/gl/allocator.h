@@ -12,31 +12,30 @@ struct allocation {
     T* data_{nullptr};
 };
 
-// creates namedbuffer, allocates memory, destroys and deallocates
+// creates namedbuffer, allocates memory, 
 template<typename T, Protection P>
-struct allocator {
-    allocation<T, P> allocate(const std::size_t n) const {
-        allocation<T, P> alloc;
-        alloc.size_ = n;
-        auto& ptr = alloc.data_;
-        auto& id = alloc.id_;
+allocation<T, P> allocate(const std::size_t n) {
+    allocation<T, P> alloc;
+    alloc.size_ = n;
+    auto& ptr = alloc.data_;
+    auto& id = alloc.id_;
 
-        glCreateBuffers(1, &id);
-        assert(id!=0 && "glCreateBuffers failed");
+    glCreateBuffers(1, &id);
+    assert(id!=0 && "glCreateBuffers failed");
 
-        glNamedBufferStorage(id, n * sizeof(T), static_cast<const void*>(ptr) , kBaseFlags | Dynamic | P);
-        ptr = static_cast<T*>(glMapNamedBufferRange(id, 0, n * sizeof(T), kBaseFlags | P));
-        assert(ptr && "glMapNamedBufferRange failed");
-        return alloc;
-    }
+    glNamedBufferStorage(id, n * sizeof(T), static_cast<const void*>(ptr) , kBaseFlags | Dynamic | P);
+    ptr = static_cast<T*>(glMapNamedBufferRange(id, 0, n * sizeof(T), kBaseFlags | P));
+    assert(ptr && "glMapNamedBufferRange failed");
+    return alloc;
+}
 
-    // for now destroy everything
-    // TODO: use InvalidateBufferSubData()
-    void deallocate(const allocation<T, P>& alloc) const {
-        if (alloc.id_ == 0) return;
-        glUnmapNamedBuffer(alloc.id_);
-        glDeleteBuffers(1, &alloc.id_);
-    }
-};
+// destroys and deallocates
+// TODO: use InvalidateBufferSubData()
+template<typename T, Protection P>
+void deallocate(const allocation<T, P>& alloc) {
+    if (alloc.id_ == 0) return;
+    glUnmapNamedBuffer(alloc.id_);
+    glDeleteBuffers(1, &alloc.id_);
+}
 
 }

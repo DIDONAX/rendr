@@ -21,15 +21,15 @@ template<typename T, Protection P>
 class mmbuffer {
     public :
         mmbuffer() {
-            allocation_ = allocator_.allocate(allocation_.size_);
+            allocation_ = allocate<T, P>(allocation_.size_);
         }
 
         mmbuffer(const std::size_t n ) {
             assert(n != 0 && "capacity cant be 0");
-            allocation_ = allocator_.allocate(n);
+            allocation_ = allocate<T, P>(n);
         }
         ~mmbuffer() {
-            allocator_.deallocate(allocation_);
+            deallocate<T, P>(allocation_);
         }
 
         mmbuffer(const mmbuffer&) = delete;
@@ -75,13 +75,12 @@ class mmbuffer {
 
     private:
         allocation<T, P> allocation_;
-        allocator<T, P> allocator_;
         size_t size_{0};
 
         void reallocate(const std::size_t n) {
-            auto a = allocator_.allocate(n);
+            auto a = allocate<T, P>(n);
             copy(a.data_, allocation_.data_, size_);
-            allocator_.deallocate(allocation_);
+            deallocate<T, P>(allocation_);
             allocation_ = a;
         }
 
