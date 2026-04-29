@@ -10,8 +10,8 @@
 
 namespace rendr {
 struct model_matrix {
-    offset_t offset_{0};
-    rotation_t rotation_{1};
+    offset_t offset_{0,0,0,1};
+    quaternion_t quaternions_{0,0,0,1};
     scale_t scale_{1};
 };
 
@@ -29,7 +29,7 @@ struct context {
 
     // batch updates
     void update_colors(const mesh_id, const std::vector<color_t>&);
-    void update_rotations(const mesh_id, const std::vector<rotation_t>&);
+    void update_rotations(const mesh_id, const std::vector<quaternion_t>&);
     void update_offsets(const mesh_id, const std::vector<offset_t>&);
 
     //single instance updates

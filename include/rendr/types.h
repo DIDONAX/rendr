@@ -13,10 +13,9 @@ using index_t = u_int32_t;
 
 using offset_t = glm::vec4;
 using color_t = glm::vec4;
+using scale_t = glm::vec4;
+using quaternion_t = glm::vec4;
 
-using rotation_t = glm::mat4;
-
-using scale_t = glm::mat4;
 
 using flag_t = GLuint;
 using uint = GLuint;

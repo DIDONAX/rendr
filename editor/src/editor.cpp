@@ -55,7 +55,8 @@ void editor::display() {
 
     gui::begin_frame();
     gui::draw_assets(*ctx_, *this); 
-    gui::draw_scene(); 
+    gui::draw_scene(*this); 
+    gui::draw_fps(); 
     gui::draw_properties(*ctx_); 
     gui::end_frame();
 

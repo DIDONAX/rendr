@@ -9,8 +9,9 @@
 namespace rendr {
 
 void create_pipeline(const program& p ) {
-    shader fs = shader("assets/fragment.glsl", ShaderType::Fragment);
-    shader vs = shader("assets/vertex.glsl", ShaderType::Vertex);
+    std::println("create_pipeline()");
+    shader fs = shader("../assets/fragment.glsl", ShaderType::Fragment);
+    shader vs = shader("../assets/vertex.glsl", ShaderType::Vertex);
     p.attach(fs);
     p.attach(vs);
     p.link();
@@ -19,6 +20,7 @@ void create_pipeline(const program& p ) {
 }
 
 context::context() {
+    std::println("context()");
     create_pipeline(program_);
     set_bindings();
     specify_attributes();
@@ -43,6 +45,7 @@ void context::set_clear_color(const color_t color) const {
 void context::clear() const {glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);}
 
 mesh_id context::add_mesh(const geometry& geom) {
+    std::println("add_mesh()");
     auto id = mdi_.size();
 
     auto base_instance{0};
@@ -73,7 +76,7 @@ instance_id context::add_instance(const mesh_id id, const model_matrix& mat, con
     auto& m = models_;
 
     m.offsets_[idx] = mat.offset_;
-    m.rotations_[idx] = mat.rotation_;
+    m.quaternions_[idx] = mat.quaternions_;
     m.scales_[idx] = mat.scale_;
     m.colors_[idx] = color;
     cmd.instance_count++;
@@ -83,7 +86,7 @@ instance_id context::add_instance(const mesh_id id, const model_matrix& mat, con
 
 void context::update_instance_model(const instance_id id, const model_matrix& mat) {
     models_.offsets_[id] = mat.offset_;
-    models_.rotations_[id] = mat.rotation_;
+    models_.quaternions_[id] = mat.quaternions_;
     models_.scales_[id] = mat.scale_;
 }
 
@@ -99,6 +102,7 @@ void context::update_camera(const camera& cam) {
 
 
 void context::load_geom() {
+    std::println("load_geom()");
     add_mesh(load_triangle());
     add_mesh(load_quad());
     add_mesh(load_cube());
@@ -108,8 +112,8 @@ void context::update_offsets(const mesh_id id, const std::vector<offset_t>& offs
     update_buffer(id, models_.offsets_, offsets);
 }
 
-void context::update_rotations(const mesh_id id, const std::vector<rotation_t>& rotations) {
-    update_buffer(id, models_.rotations_, rotations);
+void context::update_rotations(const mesh_id id, const std::vector<quaternion_t>& rotations) {
+    update_buffer(id, models_.quaternions_, rotations);
 }
 
 void context::update_colors(const mesh_id id, const std::vector<color_t>& colors) {
@@ -117,6 +121,7 @@ void context::update_colors(const mesh_id id, const std::vector<color_t>& colors
 }
 
 void context::set_initial_state() {
+    std::println("set_inital_state()");
     program_.use();
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);  
@@ -136,10 +141,11 @@ void context::sync() {
 }
 
 void context::set_bindings() {
+    std::println("set_bindings()");
     const auto& m = models_;
     bind<StorageBuffer, 0>(m.offsets_.id());
     bind<StorageBuffer, 1>(m.colors_.id());
-    bind<StorageBuffer, 2>(m.rotations_.id());
+    bind<StorageBuffer, 2>(m.quaternions_.id());
     bind<StorageBuffer, 3>(m.scales_.id());
 }
 

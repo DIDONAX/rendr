@@ -10,12 +10,12 @@ layout(std430, binding = 1) readonly buffer Colors {
     vec4 colors[];
 };
 
-layout(std430, binding = 2) readonly buffer Rotations {
-    mat4 rotations[];
+layout(std430, binding = 2) readonly buffer Quaternions {
+    vec4 quats[];
 };
 
 layout(std430, binding = 3) readonly buffer Scales {
-    mat4 scales[];
+    vec4 scales[];
 };
 
 uniform mat4 view;
@@ -26,14 +26,22 @@ out vec3 fpos;
 
 void main() {
     uint model_id = gl_BaseInstance + uint(gl_InstanceID);
-    vec3 offset = offsets[model_id].xyz;
-    mat4 rot = rotations[model_id];
-    mat4 scale = scales[model_id];
     vcolor = colors[model_id];
 
-    fpos = geom_pos + offset.xyz;
+    vec4 t = offsets[model_id];
+    t.x = -t.x;
+    vec4 q = quats[model_id];
+    vec4 s = scales[model_id];
 
-    mat4 model = mat4(1.0);
-    model[3] = vec4(offset.xyz, 1.0);
-    gl_Position = proj * view * model * rot * scale * vec4(geom_pos, 1.0);
+    float x = q.x, y = q.y, z = q.z, w = q.w;
+    float x2 = x + x, y2 = y + y, z2 = z + z;
+
+    mat4 model;
+    model[0] = vec4(s.x * (1.0 - (y * y2 + z * z2)), s.x * (x * y2 + w * z2), s.x * (x * z2 - w * y2), 0.0);
+    model[1] = vec4(s.y * (x * y2 - w * z2), s.y * (1.0 - (x * x2 + z * z2)), s.y * (y * z2 + w * x2), 0.0);
+    model[2] = vec4(s.z * (x * z2 + w * y2), s.z * (y * z2 - w * x2), s.z * (1.0 - (x * x2 + y * y2)), 0.0);
+    model[3] = t;
+
+    fpos = geom_pos + t.xyz;
+    gl_Position = proj * view * model * vec4(geom_pos, 1.0);
 }

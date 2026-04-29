@@ -4,6 +4,7 @@
 #include <string>
 
 #include "editor.h"
+#include "glm/ext/quaternion_geometric.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -54,7 +55,7 @@ inline void destroy() {
 inline void draw_properties(context& ctx) {
     auto& o = ctx.models_.offsets_;
     auto& c = ctx.models_.colors_;
-    auto& r = ctx.models_.rotations_;
+    auto& r = ctx.models_.quaternions_;
     auto& s = ctx.models_.scales_;
 
     ImGui::SetNextWindowSize(ImVec2(400, 300));
@@ -63,38 +64,67 @@ inline void draw_properties(context& ctx) {
 
         auto& offset = o[selected_instance];
         auto& color  = c[selected_instance];
-        auto& rotation = r[selected_instance];
+        auto& quat = r[selected_instance];
         auto& scale  = s[selected_instance];
 
         ImGui::Text("Instance: %d", static_cast<int>(selected_instance));
         ImGui::Separator();
 
-        ImGui::DragFloat4("Offset", &offset.x, 0.1f);
         ImGui::DragFloat4("Color", &color.x, 0.01f, 0.0f, 1.0f);
-
         ImGui::Separator();
-        ImGui::Text("Rotation");
-        ImGui::DragFloat4("##rot0", &rotation[0][0], 0.01f);
-        ImGui::DragFloat4("##rot1", &rotation[1][0], 0.01f);
-        ImGui::DragFloat4("##rot2", &rotation[2][0], 0.01f);
-        ImGui::DragFloat4("##rot3", &rotation[3][0], 0.01f);
 
+        ImGui::DragFloat3("Offset", &offset.x, 0.01f);
         ImGui::Separator();
-        ImGui::Text("Scale");
-        ImGui::DragFloat4("##scl0", &scale[0][0], 0.01f);
-        ImGui::DragFloat4("##scl1", &scale[1][0], 0.01f);
-        ImGui::DragFloat4("##scl2", &scale[2][0], 0.01f);
-        ImGui::DragFloat4("##scl3", &scale[3][0], 0.01f); 
+
+        ImGui::DragFloat3("Scale", &scale.x, 0.001f);
+        ImGui::Separator();
+
+        ImGui::DragFloat4("Quaternion", &quat.x, 0.1f);
+        ImGui::Separator();
     }
 
     ImGui::End();
 }
 
-inline void draw_scene() {
+inline void handle_mouse(editor& e) {
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.WantCaptureMouse) {
+        std::println("delta");
+    }
+}
+
+inline void fly_to(editor& e) {
+    auto& bb = bbox_[selected_instance];
+    auto& cam = e.default_camera();
+
+    cam.target_ = bb.center_;
+    cam.position_ = bb.center_ + glm::vec3(0, 0, -10.f);
+    cam.direction_ = glm::normalize(cam.target_ - cam.position_);
+}
+
+inline void draw_fps() {
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+
+    ImGui::Begin("fps",
+        nullptr,
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_NoSavedSettings);
+
+    ImGui::Text("FPS: %.1f", io.Framerate);
+
+    ImGui::End();
+}
+
+inline void draw_scene(editor& e) {
     ImGui::SetNextWindowSize(ImVec2(400, 300));
     if (ImGui::Begin("Scene")) {
         for (const auto& id : instances_) {
             bool is_selected = (selected_instance == id);
+            fly_to(e);
             if (ImGui::Selectable(std::to_string(id).c_str(), is_selected)) selected_instance = id;
         }
     }
@@ -116,7 +146,7 @@ inline void draw_assets(context& ctx, editor& e) {
     if (ImGui::Begin("Asset Browser")) {
         if (ImGui::Button("Import") && !selected_file.empty()) {
             auto geom = load_obj(selected_file);
-            auto bb = compute_bbox(geom);
+            bbox_.push_back(compute_bbox(geom));
 
             auto id = ctx.add_mesh(geom);
             meshes_.push_back(id);
@@ -124,10 +154,7 @@ inline void draw_assets(context& ctx, editor& e) {
             id = ctx.add_instance(id);
             instances_.push_back(id);
 
-            // fly to target
-            e.default_camera().target_ = bb.center_;
-            e.default_camera().position_.y = bb.center_.y;
-            e.default_camera().position_.z = -6;
+            fly_to(e);
         }
 
         ImGui::Separator();
