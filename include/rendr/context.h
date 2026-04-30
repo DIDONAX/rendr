@@ -2,14 +2,8 @@
 
 #include "rendr/gl/draw.h"
 #include "rendr/gl/program.h"
-#include "rendr/gl/draw_command.h"
-#include "rendr/mesh_storage.h"
 #include "rendr/model_storage.h"
 #include "rendr/camera.h"
-#include "rendr/types.h"
-#include <any>
-#include <filesystem>
-
 
 namespace rendr {
 

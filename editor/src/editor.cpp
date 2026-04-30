@@ -18,6 +18,9 @@ editor::editor() {
 
     window_ = new window(s);
     ctx_ = new context();
+    auto id = ctx_->create_program("../assets/vertex.glsl", "../assets/fragment.glsl");
+    ctx_->use_program(id);
+
     gui::init(*window_);
 
     sync_frame_buffer();

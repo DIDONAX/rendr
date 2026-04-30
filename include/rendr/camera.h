@@ -22,7 +22,7 @@ inline glm::mat4 compute_view(const camera& c) {
 }
 
 inline glm::mat4 compute_proj(const camera& cam) {
-    return glm::perspective(glm::radians(90.F), cam.aspect_ , 0.1F, 100.F);
+    return glm::perspective(glm::radians(90.F), cam.aspect_ , 0.1F, 10000.F);
 }
 
 } // namespace rendr

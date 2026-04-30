@@ -147,7 +147,6 @@ inline void draw_assets(context& ctx, editor& e) {
 
             id = ctx.create_instance(id);
             state_.instances_.push_back(id);
-
             fly_to(e);
         }
 

@@ -1,18 +1,9 @@
 #include "rendr/context.h"
 
 #include "glad/gl.h"
-#include "glm/ext/matrix_clip_space.hpp"
 
-#include "glm/trigonometric.hpp"
-#include "rendr/camera.h"
-#include "rendr/geometry.h"
 #include "rendr/gl/bind.h"
-#include "rendr/gl/draw.h"
-#include "rendr/gl/enums.h"
-#include "rendr/gl/program.h"
-#include "rendr/primitives.h"
-#include "rendr/types.h"
-#include <filesystem>
+
 
 namespace rendr {
 
