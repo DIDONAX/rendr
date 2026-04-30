@@ -36,8 +36,11 @@ void editor::sync_frame_buffer() {
         .aspect_ = static_cast<float>(width)/static_cast<float>(height)
     };
 
-    ctx_->set_viewport(0, 0, width, height);
-    ctx_->update_camera(camera_);
+    ctx_->viewport(0, 0, width, height);
+    ctx_->update_uniform({
+        .view_ = compute_view(camera_),
+        .proj_ = compute_proj(camera_)
+    });
 }
 
 camera& editor::default_camera() {
@@ -48,7 +51,10 @@ context* editor::ctx() {return ctx_;}
 
 bool editor::running() const {
     window_->poll_event();
-    ctx_->update_camera(camera_);
+    ctx_->update_uniform({
+        .view_ = compute_view(camera_),
+        .proj_ = compute_proj(camera_)
+    });
     return window_->is_open();
 }
 

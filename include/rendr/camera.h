@@ -1,4 +1,6 @@
 #pragma once
+
+#include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/fwd.hpp"
@@ -17,6 +19,10 @@ struct camera {
 
 inline glm::mat4 compute_view(const camera& c) {
     return glm::lookAt(c.position_, c.target_, {0,1,0}); 
+}
+
+inline glm::mat4 compute_proj(const camera& cam) {
+    return glm::perspective(glm::radians(90.F), cam.aspect_ , 0.1F, 100.F);
 }
 
 } // namespace rendr

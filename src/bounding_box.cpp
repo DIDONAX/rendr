@@ -1,5 +1,4 @@
-#include "rendr/geometry.h"
-
+#include "rendr/bounding_box.h"
 #include "rendr/constants.h"
 
 namespace rendr {

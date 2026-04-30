@@ -12,15 +12,15 @@ void vertex_array::set(const attribute& attr) {
     glVertexArrayAttribBinding(id_, attr.location_, 0);
 }
 
-void vertex_array::enable_attrib(const uint loc) const {
+void vertex_array::enable_attribute(const uint loc) const {
     glEnableVertexArrayAttrib(id_, loc);
 }
 
-void vertex_array::format_attrib(const uint loc, const int size, const uint rel_off) const {
+void vertex_array::format_attribute(const uint loc, const int size, const uint rel_off) const {
     glVertexArrayAttribFormat(id_, loc, size, GL_FLOAT, GL_FALSE, rel_off);
 }
 
-void vertex_array::bind_attrib(const uint loc, const uint bind_loc) const {
+void vertex_array::bind_attribute(const uint loc, const uint bind_loc) const {
     glVertexArrayAttribBinding(id_, loc, bind_loc);
 }
 

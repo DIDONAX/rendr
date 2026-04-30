@@ -55,7 +55,7 @@
 //    for solid components, but there are more vertex memorized and more operations,
 //    even if the visual effect is better... the computational difference is:
 //    one normal for vertex  VS  one normal for plain figure (triangle or quad)
-//    
+//
 //    comment/uncomment below or add as directive to compiler
 //--------------------------------------------------------------------------
 

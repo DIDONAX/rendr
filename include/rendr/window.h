@@ -61,7 +61,6 @@ class window {
         GLFWwindow* glf_window_;
         settings settings_{};
         void init();
-        void resolve(settings&) const;
 };
 
 } // namespace rendr

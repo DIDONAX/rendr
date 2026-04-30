@@ -9,6 +9,7 @@ namespace rendr {
 
 using mesh_id = std::size_t;
 using instance_id = std::size_t;
+using program_id = std::size_t;
 
 using position_t = glm::vec3;
 using index_t = u_int32_t;

@@ -5,6 +5,9 @@
 
 namespace rendr {
 
+// TODO: seems application specific, how to make storage take arbitrary
+//
+
 struct model_storage {
     mvector<offset_t> offsets_{10};
     mvector<color_t> colors_{10};

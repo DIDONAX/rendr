@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rendr/draw_command.h"
+#include "rendr/gl/draw_command.h"
 #include "rendr/gl/enums.h"
 #include <cstddef>
 

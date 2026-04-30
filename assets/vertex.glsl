@@ -18,8 +18,10 @@ layout(std430, binding = 3) readonly buffer Scales {
     vec4 scales[];
 };
 
-uniform mat4 view;
-uniform mat4 proj;
+layout(std140, binding = 4) uniform Camera {
+    mat4 view;
+    mat4 proj;
+};
 
 out vec4 vcolor;
 out vec3 fpos;

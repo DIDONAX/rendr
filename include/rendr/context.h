@@ -1,14 +1,19 @@
 #pragma once
 
+#include "rendr/gl/draw.h"
 #include "rendr/gl/program.h"
-#include "rendr/draw_command.h"
+#include "rendr/gl/draw_command.h"
 #include "rendr/mesh_storage.h"
 #include "rendr/model_storage.h"
 #include "rendr/camera.h"
 #include "rendr/types.h"
+#include <any>
+#include <filesystem>
 
 
 namespace rendr {
+
+namespace fs = std::filesystem;
 
 struct model_matrix {
     offset_t offset_{0,0,0,1};
@@ -16,54 +21,49 @@ struct model_matrix {
     scale_t scale_{1};
 };
 
-// TODO: SDP vs noSDP possible 2x
+// TODO: make context define and work with arbitrary uniforms
+struct camera_uniform {
+    mat4 view_;
+    mat4 proj_;
+};
+
 struct context {
-
-    program program_;
+    std::vector<program> programs_;
     mesh_storage meshes_;
-
     model_storage models_; // TODO: resize after add_instance / arena allocator > per insance grow factor ?
-    mvector<draw_command> mdi_; // TODO: update offsets after add_instance
+    mvector<draw_command> draw_commands_; // TODO: update offsets after add_instance ? clear draw commd after each frame ? 
+    mvector<camera_uniform> uniforms_;
 
     context();
     ~context();
 
-    // batch updates
-    void update_colors(const mesh_id, const std::vector<color_t>&);
-    void update_rotations(const mesh_id, const std::vector<quaternion_t>&);
-    void update_offsets(const mesh_id, const std::vector<offset_t>&);
+    mesh_id create_mesh(const geometry&);
+    instance_id create_instance(const mesh_id, const model_matrix& model = {}, const color_t = Black);
 
-    //single instance updates
-    void update_camera(const camera&);
-    void update_instance_model(const instance_id, const model_matrix&);
+    program_id create_program(const fs::path& vertex, const fs::path& fragment);
+    void use_program(const program_id);
 
-    instance_id add_instance(const mesh_id, const model_matrix& model = {}, const color_t = White);
-    mesh_id add_mesh(const geometry&);
- 
-    void draw() const;
+    void update_uniform(const camera_uniform&);
+
+    // TODO: add explicit fencing and triple ring buffer
+    template<Primitive P = Triangle>
+    void draw() const {
+        multi_draw<P>(0, draw_commands_.size());
+    }
+
     void clear() const;
-    void set_viewport(const int x,const int y, const int w, const int h) const;
-    void set_clear_color(const color_t color) const;
+    void clear_color(const color_t color) const;
+    void viewport(const int x,const int y, const int w, const int h) const;
     void wireframe(const bool b) const;
+    void point_size(float);
 
     private:
         void set_initial_state();
         void set_bindings();
-        void specify_attributes();
+        void create_vertex_layout();
         void upload_geom();
-        void load_geom();
         void sync();
-
-        template<typename T, typename Container>
-        void update_buffer(const mesh_id id, Container& buffer, const std::vector<T>& data); 
 };
-
-template<typename T, typename Container>
-void context::update_buffer(const mesh_id id, Container& buffer, const std::vector<T>& data) {
-    auto cmd = mdi_[id]; 
-    auto off = cmd.base_instance_;;
-    copy(reinterpret_cast<T*>(buffer.data()) + off, data.data(), data.size());
-}
 
 } // namespace rendr
 

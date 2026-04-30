@@ -1,22 +1,21 @@
 #pragma once 
 
 #include "rendr/gl/enums.h"
+
 namespace rendr {
 
 constexpr flag_t kBaseFlags = Persistent | Coherent;
 
 template<typename T, Protection P>
-struct allocation {
+struct mmblock {
     uint id_{0};
-    size_t size_{1};
     T* data_{nullptr};
 };
 
-// creates namedbuffer, allocates memory, 
+// creates namedbuffer, allocates memory
 template<typename T, Protection P>
-allocation<T, P> allocate(const std::size_t n) {
-    allocation<T, P> alloc;
-    alloc.size_ = n;
+inline mmblock<T, P> allocate(const std::size_t n) {
+    mmblock<T, P> alloc;
     auto& ptr = alloc.data_;
     auto& id = alloc.id_;
 
@@ -32,7 +31,7 @@ allocation<T, P> allocate(const std::size_t n) {
 // destroys and deallocates
 // TODO: use InvalidateBufferSubData()
 template<typename T, Protection P>
-void deallocate(const allocation<T, P>& alloc) {
+inline void deallocate(const mmblock<T, P>& alloc) {
     if (alloc.id_ == 0) return;
     glUnmapNamedBuffer(alloc.id_);
     glDeleteBuffers(1, &alloc.id_);

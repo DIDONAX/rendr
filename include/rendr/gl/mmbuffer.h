@@ -5,6 +5,7 @@
 #include "rendr/gl/allocator.h"
 #include "rendr/gl/enums.h"
 #include "rendr/utils.h"
+#include <cstddef>
 
 namespace rendr {
 // GLINVALID_OPERATION:
@@ -16,56 +17,74 @@ namespace rendr {
 
 constexpr auto kIncreaseFactor = 2U;
 
+// NOTE: can the allocator be made stl compatible ? -> how to handle id on resize ? 
 // TODO: assign , copy constructor
 template<typename T, Protection P>
 class mmbuffer {
     public :
         mmbuffer() {
-            allocation_ = allocate<T, P>(allocation_.size_);
+            mmblock_ = allocate<T, P>(capacity_);
         }
-
-        mmbuffer(const std::size_t n ) {
+        mmbuffer(const std::size_t n) : capacity_(n) {
             assert(n != 0 && "capacity cant be 0");
-            allocation_ = allocate<T, P>(n);
+            mmblock_ = allocate<T, P>(n);
         }
         ~mmbuffer() {
-            deallocate<T, P>(allocation_);
+            deallocate<T, P>(mmblock_);
         }
 
         mmbuffer(const mmbuffer&) = delete;
         mmbuffer& operator=(const mmbuffer&) = delete;
         mmbuffer& operator=(mmbuffer&&);
 
-        T* data() const {return allocation_.data_;}
-        T* begin() const {return allocation_.data_;}
-        T* end() const {return allocation_.data_+size_;}
+        T* data() const {return mmblock_.data_;}
+        T* begin() const {return mmblock_.data_;}
+        T* end() const {return mmblock_.data_+size_;}
 
-        uint id() const {return allocation_.id_;}
+        uint id() const {return mmblock_.id_;}
         size_t size() const { return size_;}
-        std::size_t capacity() const {return allocation_.size_;}
+        std::size_t capacity() const {return capacity_;}
 
         T& operator[](const std::size_t idx) {
             // assert(idx < size_ && "index out of range");
-            return allocation_.data_[idx];
+            return mmblock_.data_[idx];
         }
 
         const T& operator[](const std::size_t idx) const {
             // assert(idx < size_ && "index out of range");
-            return allocation_.data_[idx];
+            return mmblock_.data_[idx];
         }
 
         void push_back(const T& value) {
-            auto c = require_realloc(++size_);
+            auto c = required_capacity(++size_);
             if (c != 0) {
                 reallocate(c);
             }
-            allocation_.data_[size_- 1] = value;
+            mmblock_.data_[size_- 1] = value;
         }
 
+        bool empty() const {
+            return size_ == 0;
+        }
+
+        void clear() {
+            size_ = 0;
+        }
+
+        void reserve(const std::size_t n) {
+            auto c = required_capacity(n);
+            if (c != 0) {
+                reallocate(c);
+            }
+        }
+
+        // void insert(const std::size_t pos, const T& value) {
+        // }
+
         template<typename Container>
-        void insert(const Container& container) {
+        void insert_back(const Container& container) {
             auto n = size_+container.size();
-            auto c = require_realloc(n);
+            auto c = required_capacity(n);
             if (c != 0) {
                 reallocate(c);
             }
@@ -74,17 +93,18 @@ class mmbuffer {
         }
 
     private:
-        allocation<T, P> allocation_;
+        mmblock<T, P> mmblock_;
         size_t size_{0};
+        size_t capacity_{1};
 
         void reallocate(const std::size_t n) {
             auto a = allocate<T, P>(n);
-            copy(a.data_, allocation_.data_, size_);
-            deallocate<T, P>(allocation_);
-            allocation_ = a;
+            copy(a.data_, mmblock_.data_, size_);
+            deallocate<T, P>(mmblock_);
+            mmblock_ = a;
         }
 
-        std::size_t require_realloc(const std::size_t n) const {
+        std::size_t required_capacity(const std::size_t n) const {
             auto c = capacity();
             assert(c != 0 && "capacity cant be 0");
 

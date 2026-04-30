@@ -12,11 +12,6 @@ void program::detach(const shader& shader) const {glDetachShader(id_, shader.id_
 
 void program::use() const {glUseProgram(id_);}
 
-void program::set_umat4f(const std::string& uniform , const glm::mat4& value) const {
-    int loc = glGetUniformLocation(id_, uniform.data());
-    glProgramUniformMatrix4fv(id_, loc, 1, false, glm::value_ptr(value));
-}
-
 bool program::link() const {
     glLinkProgram(id_);
     int linked = 0;

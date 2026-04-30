@@ -13,7 +13,7 @@ uint id_{0};
 
 ~shader() {glDeleteShader(id_);} 
 
-shader(std::filesystem::path path, const ShaderType& type) {
+shader(const std::filesystem::path path, const ShaderType& type) {
     id_ = glCreateShader(static_cast<GLenum>(type));
     auto src = load_file(path);
     auto ptr = src.data();

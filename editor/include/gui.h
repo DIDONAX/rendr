@@ -4,16 +4,15 @@
 #include <print>
 #include <string>
 
-#include "glm/gtc/type_ptr.hpp"
 #include "imgui.h"
 
 #include "rendr/context.h"
 #include "rendr/load.h"
 #include "rendr/types.h"
 #include "rendr/window.h"
+#include "rendr/bounding_box.h"
 
 #include "editor.h"
-
 
 namespace rendr::gui {
 
@@ -56,6 +55,7 @@ inline void draw_guizmo(context& ctx) {
     static auto& ctxm = ctx.models_;
     auto& q = ctxm.quaternions_[state_.selected_instance];
 
+    ImGui::SetNextWindowSize(ImVec2(300, 300));
     ImGui::Begin("Guizmo");
     ImGui::gizmo3D("##guizmo", q, 200, imguiGizmo::mode3Axes | imguiGizmo::cubeAtOrigin);
     ImGui::End();
@@ -142,10 +142,10 @@ inline void draw_assets(context& ctx, editor& e) {
             auto geom = load_obj(state_.selected_file);
             state_.bbox_.push_back(compute_bbox(geom));
 
-            auto id = ctx.add_mesh(geom);
+            auto id = ctx.create_mesh(geom);
             state_.meshes_.push_back(id);
 
-            id = ctx.add_instance(id);
+            id = ctx.create_instance(id);
             state_.instances_.push_back(id);
 
             fly_to(e);
