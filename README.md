@@ -1,10 +1,10 @@
 # Rendr
 
-A C++ library for low-overhead rendering when geometry and instance data change often. The focus is explicit GPU memory, batched draws, and streaming-friendly updates — not ray tracing or a full graphics engine.
+A C++ lightweight library for low-overhead rendering. The focus is explicit GPU memory handling, batched draws, and streaming-friendly updates — not ray tracing or a full graphics engine.
 
-CPU writes go directly into persistently mapped buffers. Meshes share a single vertex/index arena, instance data lives in SSBOs, and the frame is submitted with one `glMultiDrawElementsIndirect` call. Windowing and context setup stay on the application side; the bundled editor is just a demo for model loading.
+CPU writes go directly into persistently mapped buffers. Meshes share a single vertex/index arena, instance data lives in SSBOs, and the frame is submitted with one `glMultiDrawElementsIndirect` call. Windowing and context setup stay on the applicationside; the bundled editor is just for demo purposes.
 
-Note: Vulkan is in progress since this project feels like a fight against the OpenGL api.
+Note: Vulkan rewrite is in progress since this project feels like a fight against the OpenGL api at this point.
 
 ## Model Loading
 ![Teapot](docs/teapot.png)
