@@ -8,7 +8,7 @@ Note: Vulkan rewrite is in progress since this project feels like a fight agains
 
 ---
 
-## Model Loading
+## OBJ Model Loading
 
 ![Teapot](docs/teapot.png)  
 ![Robot](docs/robot.png)
