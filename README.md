@@ -6,9 +6,21 @@ CPU writes go directly into persistently mapped buffers. Meshes share a single v
 
 Note: Vulkan rewrite is in progress since this project feels like a fight against the OpenGL api at this point.
 
+---
+
 ## Model Loading
-![Teapot](docs/teapot.png)
+
+![Teapot](docs/teapot.png)  
 ![Robot](docs/robot.png)
 
+---
+
 ## Dynamic Data Streaming (color and offset attributes)
-[▶ Watch Procedual Animation](docs/animation.gif)
+
+[▶ Watch Procedural Animation](docs/animation.gif)
+
+**Note:** The animation is fully procedural and computed on the CPU each frame. On my machine, the current performance bottleneck is the animation update loop, not the rendering pipeline itself.
+
+The scene consists of **100k instanced quads**, each made of **4 vertices**.
+
+Point sprites are more memory-efficient for particle systems (1 vertex per particle instead of 4). However, in this case they would not improve performance due to the CPU bottleneck mentioned above, and they are not the focus of this demo anyways.
