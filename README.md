@@ -11,4 +11,4 @@ Note: Vulkan rewrite is in progress since this project feels like a fight agains
 ![Robot](docs/robot.png)
 
 ## Dynamic Data Streaming (color and offset attributes)
-[▶ Watch Procedual Animation](docs/animation.webm)
+[▶ Watch Procedual Animation](docs/animation.gif)
