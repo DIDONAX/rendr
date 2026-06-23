@@ -9,10 +9,10 @@ namespace rendr {
 //
 
 struct model_storage {
-    mvector<offset_t> offsets_{10};
-    mvector<color_t> colors_{10};
-    mvector<quaternion_t> quaternions_{10};
-    mvector<scale_t> scales_{10};
+    mvector<offset_t> offsets_{kGlobalInstanceCapacity};
+    mvector<color_t> colors_{kGlobalInstanceCapacity};
+    mvector<quaternion_t> quaternions_{kGlobalInstanceCapacity};
+    mvector<scale_t> scales_{kGlobalInstanceCapacity};
 };
 
 } // namespace rendr

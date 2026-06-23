@@ -7,7 +7,7 @@
 
 namespace rendr {
 
-constexpr auto kGlobalInstanceCapacity= 10000U;
+constexpr auto kGlobalInstanceCapacity= 150000U;
 static_assert(kGlobalInstanceCapacity < std::numeric_limits<uint>::max());
 
 constexpr auto kInfinity = std::numeric_limits<float>::infinity();
