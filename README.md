@@ -10,5 +10,5 @@ Note: Vulkan rewrite is in progress since this project feels like a fight agains
 ![Teapot](docs/teapot.png)
 ![Robot](docs/robot.png)
 
-## Dynamic Data Streaming
-![Animation](docs/teapot.mp4)
+## Dynamic Data Streaming (color and offset attributes)
+![Animation](docs/animation.webm)
