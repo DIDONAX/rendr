@@ -6,15 +6,15 @@
 namespace rendr {
 
 struct program {
-    uint id_{0};
+  uint id_{0};
 
-    program();
-    ~program();
+  program();
+  ~program();
 
-    void attach(const shader& shader) const;
-    void detach(const shader& shader) const;
-    void use() const;
-    bool link() const;
+  void attach(const shader &shader) const;
+  void detach(const shader &shader) const;
+  void use() const;
+  bool link() const;
 };
 
-}
+} // namespace rendr

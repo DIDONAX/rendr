@@ -1,29 +1,36 @@
 #pragma once
 
 #include "glad/gl.h"
-#include "rendr/types.h"
 #include "rendr/gl/enums.h"
+#include "rendr/types.h"
+
+// TODO: refractor -> simplify
 
 namespace rendr {
 
-template<ObjectType T, const uint L> requires (T == UniformBuffer || T == StorageBuffer)
+template <ObjectType T, const uint L>
+  requires(T == UniformBuffer || T == StorageBuffer)
 inline void bind(const uint id) {
-    glBindBufferBase(T, L, id);
+  glBindBufferBase(T, L, id);
 }
 
-template<ObjectType T> requires (T == VertexLayout)
+template <ObjectType T>
+  requires(T == VertexLayout)
 inline void bind(const uint id) {
-    glBindVertexArray(id);
+  glBindVertexArray(id);
 }
 
-template<ObjectType T> requires (T == VertexBuffer || T == IndexBuffer || T == IndirectBuffer)
+template <ObjectType T>
+  requires(T == VertexBuffer || T == IndexBuffer || T == IndirectBuffer)
 inline void bind(const uint id) {
-    glBindBuffer(T, id);
+  glBindBuffer(T, id);
 }
 
-template<ObjectType T> requires (T == TextureBuffer)
-inline void bind(const uint id, const GLenum internal_format, const uint buffer_id) {
-    glTextureBuffer(id, internal_format, buffer_id);
+template <ObjectType T>
+  requires(T == TextureBuffer)
+inline void bind(const uint id, const GLenum internal_format,
+                 const uint buffer_id) {
+  glTextureBuffer(id, internal_format, buffer_id);
 }
 
-}
+} // namespace rendr

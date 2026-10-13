@@ -21,7 +21,6 @@ using scale_t = glm::vec4;
 // wzyz
 using quaternion_t = glm::quat;
 
-
 using flag_t = GLuint;
 using uint = GLuint;
 

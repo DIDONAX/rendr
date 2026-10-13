@@ -39,10 +39,9 @@ void run_animation(float t, std::span<rendr::offset_t> offs,
 }
 
 int main() {
-  rendr::editor e;
-  auto& cam = e.default_camera();
-  cam.position_.z = -2;
-  auto ctx = e.ctx();
+  rendr::editor editor;
+  editor.default_camera().position_.z = -2;
+  auto ctx = editor.ctx();
   auto quad = ctx->create_mesh(rendr::load_quad());
 
   for (auto i = 0U; i < N; ++i) {
@@ -63,9 +62,9 @@ int main() {
     static_noise[i].z = std::sin(f * 197.0f) * 0.05f;
   }
 
-  while (e.running()) {
-    auto t = e.clock();
+  while (editor.running()) {
+    auto t = editor.clock();
     run_animation(t, offs, cols, static_noise);
-    e.display();
+    editor.display();
   }
 }
