@@ -2,8 +2,10 @@
 
 #include "glad/gl.h"
 
+#include "rendr/constants.h"
 #include "rendr/gl/bind.h"
 #include "rendr/types.h"
+#include <cstddef>
 
 namespace rendr {
 
@@ -50,24 +52,23 @@ void context::clear() const {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-mesh_id context::create_mesh(const geometry &geom) {
+mesh_id context::create_mesh(const geometry &geom, const std::size_t capacity) {
+  assert(capacity > 0);
   auto id = meshes_.add(geom);
-  auto base_instance = [&](auto &id) {
-    auto b{0};
-    if (id != 0) {
-      b = draw_commands_[id - 1].instance_count +
-          draw_commands_[id - 1].base_instance_;
-    }
-    return b;
-  };
-
+  auto base_instance = 0U;
+  if (id != 0) {
+    // end of previous reserved window, not instance count
+    base_instance =
+        draw_commands_[id - 1].base_instance_ + meshes_.capacities_[id - 1];
+  }
+  assert(base_instance + capacity <= kGlobalInstanceCapacity);
+  meshes_.capacities_.push_back(capacity);
   draw_commands_.push_back(
       {.count_ = static_cast<uint>(geom.indices_.size()),
        .instance_count = 0,
        .first_index_ = static_cast<uint>(meshes_.data_[id].ioff_),
        .base_vertex_ = static_cast<int>(meshes_.data_[id].voff_),
-       .base_instance_ = static_cast<uint>(base_instance(id))});
-
+       .base_instance_ = static_cast<uint>(base_instance)});
   sync();
   return id;
 }
@@ -76,17 +77,20 @@ instance_id context::create_instance(const mesh_id id, const model_matrix &mat,
                                      const color_t color) {
   auto &cmd = draw_commands_[id];
   auto idx = cmd.base_instance_ + cmd.instance_count;
-  auto &m = models_;
-
-  m.offsets_[idx] = mat.offset_;
-  m.quaternions_[idx] = mat.quaternion_;
-  m.scales_[idx] = mat.scale_;
-  m.colors_[idx] = color;
+  assert(
+      cmd.instance_count <
+      meshes_
+          .capacities_[id]); // no overrun into next mesh window or end of arena
+  models_.offsets_[idx] = mat.offset_;
+  models_.quaternions_[idx] = mat.quaternion_;
+  models_.scales_[idx] = mat.scale_;
+  models_.colors_[idx] = color;
   cmd.instance_count++;
   sync();
   return idx;
 }
 
+// ranges stay valid as long as instance grow within the reserve
 std::span<offset_t> context::get_offset_range(const mesh_id id) {
   auto &cmd = draw_commands_[id];
   return {&models_.offsets_[cmd.base_instance_], cmd.instance_count};

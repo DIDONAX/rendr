@@ -26,15 +26,14 @@ struct context {
   mesh_storage meshes_;
   model_storage models_; // TODO: resize after add_instance / arena allocator >
                          // per insance grow factor ?
-  mvector<draw_command>
-      draw_commands_; // TODO: update offsets after add_instance ? clear draw
-                      // commd after each frame ?
+  mvector<draw_command> draw_commands_;
+
   mvector<camera_uniform> uniforms_;
 
   context();
   ~context();
 
-  mesh_id create_mesh(const geometry &);
+  mesh_id create_mesh(const geometry &, const std::size_t);
   instance_id create_instance(const mesh_id, const model_matrix &model = {},
                               const color_t = Black);
 

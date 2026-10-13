@@ -18,6 +18,7 @@ struct mesh_storage {
   std::vector<mesh_data> data_;
   mvector<position_t> vertices_;
   mvector<index_t> indices_;
+  std::vector<std::size_t> capacities_{};
 
   // TODO: support different layouts/ move this out of mesh storage
   vertex_array attributes_;

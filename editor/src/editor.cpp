@@ -19,14 +19,12 @@ editor::editor() {
 
   window_ = new window(s);
   ctx_ = new context();
-  auto id =
+  auto program_id =
       ctx_->create_program("../assets/vertex.glsl", "../assets/fragment.glsl");
-  ctx_->use_program(id);
-
+  ctx_->use_program(program_id);
   gui::init(*window_);
-
   sync_frame_buffer();
-  gui::cache_asset_files("assets");
+  gui::scan_asset_files("../assets");
 }
 
 editor::~editor() {

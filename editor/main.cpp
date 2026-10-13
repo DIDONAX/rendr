@@ -42,7 +42,7 @@ int main() {
   rendr::editor editor;
   editor.default_camera().position_.z = -2;
   auto ctx = editor.ctx();
-  auto quad = ctx->create_mesh(rendr::load_quad());
+  auto quad = ctx->create_mesh(rendr::load_quad(), N);
 
   for (auto i = 0U; i < N; ++i) {
     rendr::model_matrix m;
