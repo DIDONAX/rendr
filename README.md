@@ -2,7 +2,9 @@
 
 A C++ lightweight library for low-overhead rendering. The focus is explicit GPU memory handling, batched draws, and streaming-friendly updates — not ray tracing or a full graphics engine.
 
-CPU writes go directly into persistently mapped buffers. Meshes share a single vertex/index arena, instance data lives in SSBOs, and the frame is submitted with one `glMultiDrawElementsIndirect` call. Windowing and context setup stay on the applicationside; the bundled editor is just for demo purposes.
+CPU writes go directly into persistently mapped buffers. Meshes share a single vertex/index arena, instance data lives in SSBOs, and the frame is submitted with one `glMultiDrawElementsIndirect` call. Windowing and context setup stay on the application side; the bundled editor is just for demo purposes.
+
+Meshes reserve a fixed instance capacity at `create_mesh(geom, capacity)` so instance SoA ranges never collide across meshes. Global instance storage is capped by `kGlobalInstanceCapacity` (currently 150k).
 
 Note: Vulkan rewrite is in progress since this project feels like a fight against the OpenGL api at this point.
 
@@ -15,12 +17,6 @@ Note: Vulkan rewrite is in progress since this project feels like a fight agains
 
 ---
 
-## Dynamic Data Streaming (color and offset attributes)
+The editor demo runs a procedural **cosmic vortex**: ~150k instanced cubes with offsets/colors updated each frame, and a camera orbiting at a fixed distance.
 
-[▶ Watch Procedural Animation](docs/animation.gif)
-
-**Note:** The animation is fully procedural and computed on the CPU each frame. On my machine, the current performance bottleneck is the animation update loop, not the rendering pipeline itself.
-
-The scene consists of **100k instanced quads**, each made of **4 vertices**.
-
-Point sprites are more memory-efficient for particle systems (1 vertex per particle instead of 4). However, in this case they would not improve performance due to the CPU bottleneck mentioned above, and they are not the focus of this demo anyways.
+**Note:** That animation loop lives in `editor/main.cpp` — it is demo/application code, not part of the renderer. On my machine it is the current bottleneck; the library’s multi-draw path is not.
